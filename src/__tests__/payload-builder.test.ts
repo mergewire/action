@@ -15,6 +15,7 @@ const mockPullRequest: PullRequest = {
   baseRef: "main",
   headRef: "feature-branch",
   headSha: "abc123",
+  author: "test-author",
 };
 
 const mockSource: PayloadSource = {

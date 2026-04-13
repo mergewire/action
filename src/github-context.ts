@@ -4,6 +4,7 @@
  * Extracts PR info and repository details from the GitHub Actions environment.
  */
 
+import * as core from "@actions/core";
 import * as github from "@actions/github";
 import type { Repo, PullRequest, PayloadSource } from "./core/types.js";
 
@@ -57,11 +58,25 @@ export function extractGitHubContext(): GitHubContext {
       ? (pr.head as { sha?: string }).sha
       : undefined;
 
+  const author =
+    typeof pr.user === "object" && pr.user !== null
+      ? (pr.user as { login?: string }).login
+      : undefined;
+  const authorType =
+    typeof pr.user === "object" && pr.user !== null
+      ? (pr.user as { type?: string }).type
+      : undefined;
+
+  if (author) {
+    core.debug(`PR author: ${author} (type: ${authorType ?? "unknown"})`);
+  }
+
   const pullRequest: PullRequest = {
     number: pr.number,
     baseRef: baseRef ?? "",
     headRef: headRef ?? "",
     headSha: headSha ?? "",
+    ...(author ? { author } : {}),
   };
 
   // Validate PR info
