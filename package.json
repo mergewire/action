@@ -1,6 +1,6 @@
 {
   "name": "@mergewire/action",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "GitHub Action to run Terraform and send routing-safe payloads to the review router API",
   "type": "module",
   "main": "./dist/index.js",
