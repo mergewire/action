@@ -31705,7 +31705,7 @@ var external_path_ = __nccwpck_require__(6928);
  * Extracts PR info and repository details from the GitHub Actions environment.
  */
 
-const ACTION_VERSION = '0.1.0';
+const ACTION_VERSION = "0.1.0";
 /**
  * Extract GitHub context from the Actions environment
  * @throws Error if required context is missing
@@ -31714,8 +31714,8 @@ function extractGitHubContext() {
     const context = github.context;
     // Validate we're in a PR context
     if (!context.payload.pull_request) {
-        throw new Error('This action must be run in a pull request context. ' +
-            'Please ensure this workflow is triggered by a pull_request event.');
+        throw new Error("This action must be run in a pull request context. " +
+            "Please ensure this workflow is triggered by a pull_request event.");
     }
     const pr = context.payload.pull_request;
     // Extract repo info
@@ -31725,24 +31725,33 @@ function extractGitHubContext() {
     };
     // Validate repo info
     if (!repo.owner || !repo.name) {
-        throw new Error('Unable to determine repository from GitHub context');
+        throw new Error("Unable to determine repository from GitHub context");
     }
     // Extract PR info with runtime validation
-    const baseRef = typeof pr.base === 'object' && pr.base !== null ? pr.base.ref : undefined;
-    const headRef = typeof pr.head === 'object' && pr.head !== null ? pr.head.ref : undefined;
-    const headSha = typeof pr.head === 'object' && pr.head !== null ? pr.head.sha : undefined;
+    const baseRef = typeof pr.base === "object" && pr.base !== null
+        ? pr.base.ref
+        : undefined;
+    const headRef = typeof pr.head === "object" && pr.head !== null
+        ? pr.head.ref
+        : undefined;
+    const headSha = typeof pr.head === "object" && pr.head !== null
+        ? pr.head.sha
+        : undefined;
     const pullRequest = {
         number: pr.number,
-        baseRef: baseRef ?? '',
-        headRef: headRef ?? '',
-        headSha: headSha ?? '',
+        baseRef: baseRef ?? "",
+        headRef: headRef ?? "",
+        headSha: headSha ?? "",
     };
     // Validate PR info
-    if (!pullRequest.number || !pullRequest.baseRef || !pullRequest.headRef || !pullRequest.headSha) {
-        throw new Error('Unable to determine pull request information from GitHub context');
+    if (!pullRequest.number ||
+        !pullRequest.baseRef ||
+        !pullRequest.headRef ||
+        !pullRequest.headSha) {
+        throw new Error("Unable to determine pull request information from GitHub context");
     }
     const source = {
-        provider: 'github-actions',
+        provider: "github-actions",
         version: ACTION_VERSION,
     };
     return {
@@ -31774,21 +31783,21 @@ async function getChangedFiles(token, owner, repo, pullNumber) {
  * Check if we're running in a GitHub Actions environment
  */
 function isGitHubActions() {
-    return process.env.GITHUB_ACTIONS === 'true';
+    return process.env.GITHUB_ACTIONS === "true";
 }
 /**
  * Get the GitHub Actions run ID
  */
 function getRunId() {
-    return parseInt(process.env.GITHUB_RUN_ID || '0', 10);
+    return parseInt(process.env.GITHUB_RUN_ID || "0", 10);
 }
 /**
  * Get the GitHub Actions run URL
  */
 function getRunUrl() {
-    const serverUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';
-    const repository = process.env.GITHUB_REPOSITORY || '';
-    const runId = process.env.GITHUB_RUN_ID || '';
+    const serverUrl = process.env.GITHUB_SERVER_URL || "https://github.com";
+    const repository = process.env.GITHUB_REPOSITORY || "";
+    const runId = process.env.GITHUB_RUN_ID || "";
     return `${serverUrl}/${repository}/actions/runs/${runId}`;
 }
 
@@ -31806,7 +31815,7 @@ var external_fs_ = __nccwpck_require__(9896);
 
 
 
-const PLAN_FILE = 'tfplan.bin';
+const PLAN_FILE = "tfplan.bin";
 /**
  * Run Terraform init and plan commands
  * @param terraformRoot - Path to the Terraform directory
@@ -31821,27 +31830,27 @@ async function runTerraform(terraformRoot, workspace) {
         throw new Error(`Terraform root directory does not exist: ${terraformRoot}`);
     }
     // Run terraform init
-    core.info('  Running terraform init...');
-    await execTerraform(['init', '-no-color'], cwd);
+    core.info("  Running terraform init...");
+    await execTerraform(["init", "-no-color"], cwd);
     // Select workspace if provided
     if (workspace) {
         core.info(`  Selecting workspace: ${workspace}...`);
         try {
-            await execTerraform(['workspace', 'select', workspace], cwd);
+            await execTerraform(["workspace", "select", workspace], cwd);
         }
         catch {
             core.info(`    Workspace ${workspace} does not exist, creating...`);
-            await execTerraform(['workspace', 'new', workspace], cwd);
+            await execTerraform(["workspace", "new", workspace], cwd);
         }
     }
     // Run terraform plan
-    core.info('  Running terraform plan...');
+    core.info("  Running terraform plan...");
     const planFile = external_path_.join(cwd, PLAN_FILE);
-    await execTerraform(['plan', '-out', PLAN_FILE, '-no-color', '-input=false'], cwd);
+    await execTerraform(["plan", "-out", PLAN_FILE, "-no-color", "-input=false"], cwd);
     // Get binary plan size
     const binarySize = external_fs_.statSync(planFile).size;
     // Run terraform show to get JSON
-    core.info('  Converting plan to JSON...');
+    core.info("  Converting plan to JSON...");
     const planJson = await execTerraformShow(cwd);
     // Cleanup
     try {
@@ -31864,8 +31873,8 @@ async function execTerraform(args, cwd) {
         silent: true, // Don't print stdout to avoid leaking sensitive data
         ignoreReturnCode: false,
     };
-    let stderr = '';
-    const exitCode = await lib_exec.exec('terraform', args, {
+    let stderr = "";
+    const exitCode = await lib_exec.exec("terraform", args, {
         ...options,
         listeners: {
             stderr: (data) => {
@@ -31884,9 +31893,9 @@ async function execTerraform(args, cwd) {
  */
 async function execTerraformShow(cwd) {
     const planFile = external_path_.join(cwd, PLAN_FILE);
-    let stdout = '';
-    let stderr = '';
-    const exitCode = await lib_exec.exec('terraform', ['show', '-json', planFile], {
+    let stdout = "";
+    let stderr = "";
+    const exitCode = await lib_exec.exec("terraform", ["show", "-json", planFile], {
         cwd,
         silent: true,
         ignoreReturnCode: false,
@@ -31914,7 +31923,7 @@ async function execTerraformShow(cwd) {
  */
 async function isTerraformInstalled() {
     try {
-        await exec.exec('terraform', ['version'], { silent: true });
+        await exec.exec("terraform", ["version"], { silent: true });
         return true;
     }
     catch {
@@ -31925,7 +31934,7 @@ async function isTerraformInstalled() {
  * Validate Terraform configuration
  */
 async function validateTerraform(cwd) {
-    await execTerraform(['validate', '-no-color'], cwd);
+    await execTerraform(["validate", "-no-color"], cwd);
 }
 
 ;// CONCATENATED MODULE: ./dist/core/types.js
@@ -31936,25 +31945,25 @@ async function validateTerraform(cwd) {
  * and can be published as a standalone open-source GitHub Action.
  */
 const types_VALID_ACTIONS = [
-    'create',
-    'update',
-    'delete',
-    'read',
-    'no-op',
-    'replace',
-    'import',
+    "create",
+    "update",
+    "delete",
+    "read",
+    "no-op",
+    "replace",
+    "import",
 ];
 // ============================================================================
 // Constants
 // ============================================================================
 const FORBIDDEN_PAYLOAD_FIELDS = (/* unused pure expression or super */ null && ([
-    'before',
-    'after',
-    'variables',
-    'values',
-    'planned_values',
-    'prior_state',
-    'configuration',
+    "before",
+    "after",
+    "variables",
+    "values",
+    "planned_values",
+    "prior_state",
+    "configuration",
 ]));
 
 ;// CONCATENATED MODULE: ./dist/core/helpers.js
@@ -31984,8 +31993,8 @@ function meetsSeverityThreshold(severity, minimum) {
 }
 function maxSeverity(severities) {
     if (severities.length === 0)
-        return 'low';
-    return severities.reduce((max, current) => (isMoreSevere(current, max) ? current : max));
+        return "low";
+    return severities.reduce((max, current) => isMoreSevere(current, max) ? current : max);
 }
 // ============================================================================
 // Action Normalization
@@ -31994,13 +32003,13 @@ function isReplacementAction(actions) {
     if (actions.length !== 2)
         return false;
     const sorted = [...actions].sort();
-    return sorted[0] === 'create' && sorted[1] === 'delete';
+    return sorted[0] === "create" && sorted[1] === "delete";
 }
 function normalizeActions(actions, importingId) {
     if (isReplacementAction(actions))
-        return ['replace'];
-    if (importingId && actions.includes('no-op'))
-        return ['import'];
+        return ["replace"];
+    if (importingId && actions.includes("no-op"))
+        return ["import"];
     return actions.filter((a) => types_VALID_ACTIONS.includes(a));
 }
 function normalizeResourceActions(resource) {
@@ -32020,15 +32029,15 @@ function calculateSummary(resources) {
     let imports = 0;
     for (const resource of resources) {
         const normalized = normalizeActions(resource.actions, resource.importingId);
-        if (normalized.includes('create'))
+        if (normalized.includes("create"))
             creates++;
-        if (normalized.includes('update'))
+        if (normalized.includes("update"))
             updates++;
-        if (normalized.includes('delete'))
+        if (normalized.includes("delete"))
             deletes++;
-        if (normalized.includes('replace'))
+        if (normalized.includes("replace"))
             replaces++;
-        if (normalized.includes('import'))
+        if (normalized.includes("import"))
             imports++;
     }
     return { creates, updates, deletes, replaces, imports };
@@ -32046,8 +32055,8 @@ function buildSummaryString(summary) {
     if (summary.imports > 0)
         parts.push(`${summary.imports} import(s)`);
     if (parts.length === 0)
-        return 'no changes';
-    return parts.join(', ');
+        return "no changes";
+    return parts.join(", ");
 }
 function hasChanges(summary) {
     return (summary.creates > 0 ||
@@ -32060,17 +32069,17 @@ function hasChanges(summary) {
 // Payload Sanitization
 // ============================================================================
 const SENSITIVE_FIELDS = [
-    'before',
-    'after',
-    'variables',
-    'values',
-    'planned_values',
-    'prior_state',
-    'configuration',
-    'sensitive_values',
+    "before",
+    "after",
+    "variables",
+    "values",
+    "planned_values",
+    "prior_state",
+    "configuration",
+    "sensitive_values",
 ];
 function stripSensitiveFields(obj) {
-    if (obj === null || typeof obj !== 'object')
+    if (obj === null || typeof obj !== "object")
         return obj;
     if (Array.isArray(obj))
         return obj.map(stripSensitiveFields);
@@ -32107,7 +32116,7 @@ function assertSafePayload(payload) {
 // Stable Serialization
 // ============================================================================
 function sortKeysReplacer(_key, value) {
-    if (value === null || typeof value !== 'object' || Array.isArray(value))
+    if (value === null || typeof value !== "object" || Array.isArray(value))
         return value;
     return Object.keys(value)
         .sort()
@@ -32136,7 +32145,7 @@ function createPayloadKey(payload) {
 // Validation Helpers
 // ============================================================================
 function isValidSeverity(value) {
-    return value === 'low' || value === 'medium' || value === 'high';
+    return value === "low" || value === "medium" || value === "high";
 }
 function isValidResourceActions(actions) {
     return actions.every((a) => VALID_ACTIONS.includes(a));
@@ -32144,7 +32153,7 @@ function isValidResourceActions(actions) {
 function coerceSeverity(value) {
     if (isValidSeverity(value))
         return value;
-    return 'low';
+    return "low";
 }
 
 ;// CONCATENATED MODULE: ./dist/pricing-extractor.js
@@ -32163,27 +32172,27 @@ function coerceSeverity(value) {
  */
 
 const SUPPORTED_RESOURCE_TYPES = new Set([
-    'aws_instance',
-    'aws_db_instance',
-    'aws_elasticache_replication_group',
-    'aws_elasticache_cluster',
-    'aws_ebs_volume',
-    'google_compute_instance',
-    'google_sql_database_instance',
-    'google_redis_instance',
-    'google_compute_disk',
-    'azurerm_linux_virtual_machine',
-    'azurerm_windows_virtual_machine',
-    'azurerm_postgresql_flexible_server',
-    'azurerm_mysql_flexible_server',
-    'azurerm_redis_cache',
-    'azurerm_managed_disk',
+    "aws_instance",
+    "aws_db_instance",
+    "aws_elasticache_replication_group",
+    "aws_elasticache_cluster",
+    "aws_ebs_volume",
+    "google_compute_instance",
+    "google_sql_database_instance",
+    "google_redis_instance",
+    "google_compute_disk",
+    "azurerm_linux_virtual_machine",
+    "azurerm_windows_virtual_machine",
+    "azurerm_postgresql_flexible_server",
+    "azurerm_mysql_flexible_server",
+    "azurerm_redis_cache",
+    "azurerm_managed_disk",
 ]);
 /**
  * Extract pricing resources from a Terraform plan JSON object
  */
 function extractPricingResources(planJson) {
-    if (!planJson || typeof planJson !== 'object') {
+    if (!planJson || typeof planJson !== "object") {
         return [];
     }
     const plan = planJson;
@@ -32193,7 +32202,7 @@ function extractPricingResources(planJson) {
     }
     const pricingResources = [];
     for (const change of resourceChanges) {
-        if (!change || typeof change !== 'object') {
+        if (!change || typeof change !== "object") {
             continue;
         }
         const resourceChange = change;
@@ -32207,7 +32216,7 @@ function extractPricingResources(planJson) {
         }
         const importing = changeData.importing;
         const importingId = importing?.id;
-        if (actions.length === 1 && actions[0] === 'no-op' && !importingId) {
+        if (actions.length === 1 && actions[0] === "no-op" && !importingId) {
             continue;
         }
         const type = resourceChange.type;
@@ -32229,225 +32238,226 @@ function extractPricingResources(planJson) {
     return pricingResources;
 }
 function determineSingleAction(normalizedActions) {
-    if (normalizedActions.includes('replace'))
-        return 'replace';
-    if (normalizedActions.includes('update'))
-        return 'update';
-    if (normalizedActions.includes('create'))
-        return 'create';
-    if (normalizedActions.includes('delete'))
-        return 'delete';
-    if (normalizedActions.includes('import'))
-        return 'import';
-    return normalizedActions[0] ?? 'no-op';
+    if (normalizedActions.includes("replace"))
+        return "replace";
+    if (normalizedActions.includes("update"))
+        return "update";
+    if (normalizedActions.includes("create"))
+        return "create";
+    if (normalizedActions.includes("delete"))
+        return "delete";
+    if (normalizedActions.includes("import"))
+        return "import";
+    return normalizedActions[0] ?? "no-op";
 }
 function buildPricingResource(address, type, action, extracted) {
     const state = selectBeforeAfterState(action, extracted.regionBefore, extracted.regionAfter, extracted.before, extracted.after);
     const missing = [];
     if (!state.region)
-        missing.push('region');
-    if (action === 'create' && !state.after)
-        missing.push('after dimensions');
-    if (action === 'delete' && !state.before)
-        missing.push('before dimensions');
-    if ((action === 'update' || action === 'replace') && (!state.before || !state.after)) {
+        missing.push("region");
+    if (action === "create" && !state.after)
+        missing.push("after dimensions");
+    if (action === "delete" && !state.before)
+        missing.push("before dimensions");
+    if ((action === "update" || action === "replace") &&
+        (!state.before || !state.after)) {
         if (!state.before)
-            missing.push('before dimensions');
+            missing.push("before dimensions");
         if (!state.after)
-            missing.push('after dimensions');
+            missing.push("after dimensions");
     }
-    if (action === 'import' && !state.after)
-        missing.push('after dimensions');
+    if (action === "import" && !state.after)
+        missing.push("after dimensions");
     return {
         address,
         type,
         action,
         provider: extracted.provider,
-        region: state.region ?? '',
+        region: state.region ?? "",
         pricingFamily: extracted.pricingFamily,
         ...(state.before !== undefined ? { before: state.before } : {}),
         ...(state.after !== undefined ? { after: state.after } : {}),
         ...(missing.length > 0
             ? {
-                unpricedReason: 'missing_dimensions',
-                unpricedDetails: `Missing ${missing.join(' and ')}`,
+                unpricedReason: "missing_dimensions",
+                unpricedDetails: `Missing ${missing.join(" and ")}`,
             }
             : {}),
     };
 }
 function extractDimensions(type, before, after) {
     switch (type) {
-        case 'aws_instance':
+        case "aws_instance":
             return {
-                provider: 'aws',
-                pricingFamily: 'vm_compute',
+                provider: "aws",
+                pricingFamily: "vm_compute",
                 regionBefore: extractAwsRegion(before),
                 regionAfter: extractAwsRegion(after),
                 before: extractAwsVmDimensions(before),
                 after: extractAwsVmDimensions(after),
             };
-        case 'google_compute_instance':
+        case "google_compute_instance":
             return {
-                provider: 'gcp',
-                pricingFamily: 'vm_compute',
+                provider: "gcp",
+                pricingFamily: "vm_compute",
                 regionBefore: extractGcpRegion(before),
                 regionAfter: extractGcpRegion(after),
                 before: extractGcpVmDimensions(before),
                 after: extractGcpVmDimensions(after),
             };
-        case 'azurerm_linux_virtual_machine':
+        case "azurerm_linux_virtual_machine":
             return {
-                provider: 'azure',
-                pricingFamily: 'vm_compute',
-                regionBefore: extractString(before, 'location'),
-                regionAfter: extractString(after, 'location'),
-                before: extractAzureVmDimensions(before, 'linux'),
-                after: extractAzureVmDimensions(after, 'linux'),
+                provider: "azure",
+                pricingFamily: "vm_compute",
+                regionBefore: extractString(before, "location"),
+                regionAfter: extractString(after, "location"),
+                before: extractAzureVmDimensions(before, "linux"),
+                after: extractAzureVmDimensions(after, "linux"),
             };
-        case 'azurerm_windows_virtual_machine':
+        case "azurerm_windows_virtual_machine":
             return {
-                provider: 'azure',
-                pricingFamily: 'vm_compute',
-                regionBefore: extractString(before, 'location'),
-                regionAfter: extractString(after, 'location'),
-                before: extractAzureVmDimensions(before, 'windows'),
-                after: extractAzureVmDimensions(after, 'windows'),
+                provider: "azure",
+                pricingFamily: "vm_compute",
+                regionBefore: extractString(before, "location"),
+                regionAfter: extractString(after, "location"),
+                before: extractAzureVmDimensions(before, "windows"),
+                after: extractAzureVmDimensions(after, "windows"),
             };
-        case 'aws_db_instance':
+        case "aws_db_instance":
             return {
-                provider: 'aws',
-                pricingFamily: 'managed_db',
+                provider: "aws",
+                pricingFamily: "managed_db",
                 regionBefore: extractAwsRegion(before),
                 regionAfter: extractAwsRegion(after),
                 before: extractAwsDbDimensions(before),
                 after: extractAwsDbDimensions(after),
             };
-        case 'google_sql_database_instance':
+        case "google_sql_database_instance":
             return {
-                provider: 'gcp',
-                pricingFamily: 'managed_db',
+                provider: "gcp",
+                pricingFamily: "managed_db",
                 regionBefore: extractGcpSqlRegion(before),
                 regionAfter: extractGcpSqlRegion(after),
                 before: extractGcpSqlDimensions(before),
                 after: extractGcpSqlDimensions(after),
             };
-        case 'azurerm_postgresql_flexible_server':
+        case "azurerm_postgresql_flexible_server":
             return {
-                provider: 'azure',
-                pricingFamily: 'managed_db',
-                regionBefore: extractString(before, 'location'),
-                regionAfter: extractString(after, 'location'),
-                before: extractAzureFlexibleServerDimensions(before, 'postgres'),
-                after: extractAzureFlexibleServerDimensions(after, 'postgres'),
+                provider: "azure",
+                pricingFamily: "managed_db",
+                regionBefore: extractString(before, "location"),
+                regionAfter: extractString(after, "location"),
+                before: extractAzureFlexibleServerDimensions(before, "postgres"),
+                after: extractAzureFlexibleServerDimensions(after, "postgres"),
             };
-        case 'azurerm_mysql_flexible_server':
+        case "azurerm_mysql_flexible_server":
             return {
-                provider: 'azure',
-                pricingFamily: 'managed_db',
-                regionBefore: extractString(before, 'location'),
-                regionAfter: extractString(after, 'location'),
-                before: extractAzureFlexibleServerDimensions(before, 'mysql'),
-                after: extractAzureFlexibleServerDimensions(after, 'mysql'),
+                provider: "azure",
+                pricingFamily: "managed_db",
+                regionBefore: extractString(before, "location"),
+                regionAfter: extractString(after, "location"),
+                before: extractAzureFlexibleServerDimensions(before, "mysql"),
+                after: extractAzureFlexibleServerDimensions(after, "mysql"),
             };
-        case 'aws_elasticache_replication_group':
+        case "aws_elasticache_replication_group":
             return {
-                provider: 'aws',
-                pricingFamily: 'cache',
+                provider: "aws",
+                pricingFamily: "cache",
                 regionBefore: extractAwsRegionFromArray(before, [
-                    'preferred_cache_cluster_azs',
-                    'availability_zones',
+                    "preferred_cache_cluster_azs",
+                    "availability_zones",
                 ]),
                 regionAfter: extractAwsRegionFromArray(after, [
-                    'preferred_cache_cluster_azs',
-                    'availability_zones',
+                    "preferred_cache_cluster_azs",
+                    "availability_zones",
                 ]),
                 before: extractAwsElastiCacheReplicationGroupDimensions(before),
                 after: extractAwsElastiCacheReplicationGroupDimensions(after),
             };
-        case 'aws_elasticache_cluster':
+        case "aws_elasticache_cluster":
             return {
-                provider: 'aws',
-                pricingFamily: 'cache',
+                provider: "aws",
+                pricingFamily: "cache",
                 regionBefore: extractAwsRegion(before) ??
-                    extractAwsRegionFromArray(before, ['preferred_availability_zones']),
+                    extractAwsRegionFromArray(before, ["preferred_availability_zones"]),
                 regionAfter: extractAwsRegion(after) ??
-                    extractAwsRegionFromArray(after, ['preferred_availability_zones']),
+                    extractAwsRegionFromArray(after, ["preferred_availability_zones"]),
                 before: extractAwsElastiCacheClusterDimensions(before),
                 after: extractAwsElastiCacheClusterDimensions(after),
             };
-        case 'google_redis_instance':
+        case "google_redis_instance":
             return {
-                provider: 'gcp',
-                pricingFamily: 'cache',
-                regionBefore: extractString(before, 'region'),
-                regionAfter: extractString(after, 'region'),
+                provider: "gcp",
+                pricingFamily: "cache",
+                regionBefore: extractString(before, "region"),
+                regionAfter: extractString(after, "region"),
                 before: extractGcpRedisDimensions(before),
                 after: extractGcpRedisDimensions(after),
             };
-        case 'azurerm_redis_cache':
+        case "azurerm_redis_cache":
             return {
-                provider: 'azure',
-                pricingFamily: 'cache',
-                regionBefore: extractString(before, 'location'),
-                regionAfter: extractString(after, 'location'),
+                provider: "azure",
+                pricingFamily: "cache",
+                regionBefore: extractString(before, "location"),
+                regionAfter: extractString(after, "location"),
                 before: extractAzureRedisDimensions(before),
                 after: extractAzureRedisDimensions(after),
             };
-        case 'aws_ebs_volume':
+        case "aws_ebs_volume":
             return {
-                provider: 'aws',
-                pricingFamily: 'block_storage',
+                provider: "aws",
+                pricingFamily: "block_storage",
                 regionBefore: extractAwsRegion(before),
                 regionAfter: extractAwsRegion(after),
                 before: extractAwsEbsDimensions(before),
                 after: extractAwsEbsDimensions(after),
             };
-        case 'google_compute_disk':
+        case "google_compute_disk":
             return {
-                provider: 'gcp',
-                pricingFamily: 'block_storage',
+                provider: "gcp",
+                pricingFamily: "block_storage",
                 regionBefore: extractGcpRegion(before),
                 regionAfter: extractGcpRegion(after),
                 before: extractGcpDiskDimensions(before),
                 after: extractGcpDiskDimensions(after),
             };
-        case 'azurerm_managed_disk':
+        case "azurerm_managed_disk":
             return {
-                provider: 'azure',
-                pricingFamily: 'block_storage',
-                regionBefore: extractString(before, 'location'),
-                regionAfter: extractString(after, 'location'),
+                provider: "azure",
+                pricingFamily: "block_storage",
+                regionBefore: extractString(before, "location"),
+                regionAfter: extractString(after, "location"),
                 before: extractAzureManagedDiskDimensions(before),
                 after: extractAzureManagedDiskDimensions(after),
             };
         default:
             return {
-                provider: 'aws',
-                pricingFamily: 'vm_compute',
+                provider: "aws",
+                pricingFamily: "vm_compute",
             };
     }
 }
 function extractAwsVmDimensions(obj) {
-    const sku = extractString(obj, 'instance_type');
+    const sku = extractString(obj, "instance_type");
     return sku ? { sku } : undefined;
 }
 function extractGcpVmDimensions(obj) {
-    const sku = extractLastSegment(extractString(obj, 'machine_type'));
+    const sku = extractLastSegment(extractString(obj, "machine_type"));
     return sku ? { sku } : undefined;
 }
 function extractAzureVmDimensions(obj, osDiscriminator) {
-    const sku = extractString(obj, 'size');
+    const sku = extractString(obj, "size");
     return sku ? { sku, osDiscriminator } : undefined;
 }
 function extractAwsDbDimensions(obj) {
-    const sku = extractString(obj, 'instance_class');
-    const engine = normalizeEngine(extractString(obj, 'engine'));
-    const sizeGiB = extractNumber(obj, 'allocated_storage');
+    const sku = extractString(obj, "instance_class");
+    const engine = normalizeEngine(extractString(obj, "engine"));
+    const sizeGiB = extractNumber(obj, "allocated_storage");
     if (!sku || !engine || !sizeGiB) {
         return undefined;
     }
-    const highAvailability = extractBoolean(obj, 'multi_az');
-    const deploymentModel = highAvailability ? 'multi_az' : 'single_az';
+    const highAvailability = extractBoolean(obj, "multi_az");
+    const deploymentModel = highAvailability ? "multi_az" : "single_az";
     return {
         engine,
         sku,
@@ -32455,22 +32465,22 @@ function extractAwsDbDimensions(obj) {
         highAvailability,
         storage: {
             sizeGiB,
-            storageClass: extractString(obj, 'storage_type') ?? 'gp2',
-            iops: extractNumber(obj, 'iops'),
-            throughputMbps: extractNumber(obj, 'storage_throughput'),
+            storageClass: extractString(obj, "storage_type") ?? "gp2",
+            iops: extractNumber(obj, "iops"),
+            throughputMbps: extractNumber(obj, "storage_throughput"),
         },
     };
 }
 function extractGcpSqlDimensions(obj) {
-    const settings = extractFirstBlock(obj, 'settings');
-    const sku = extractString(settings, 'tier');
-    const engine = normalizeGcpDatabaseVersion(extractString(obj, 'database_version'));
-    const sizeGiB = extractNumber(settings, 'disk_size');
+    const settings = extractFirstBlock(obj, "settings");
+    const sku = extractString(settings, "tier");
+    const engine = normalizeGcpDatabaseVersion(extractString(obj, "database_version"));
+    const sizeGiB = extractNumber(settings, "disk_size");
     if (!sku || !engine || !sizeGiB) {
         return undefined;
     }
-    const availabilityType = normalizeValue(extractString(settings, 'availability_type'));
-    const highAvailability = availabilityType === 'regional';
+    const availabilityType = normalizeValue(extractString(settings, "availability_type"));
+    const highAvailability = availabilityType === "regional";
     return {
         engine,
         sku,
@@ -32478,18 +32488,18 @@ function extractGcpSqlDimensions(obj) {
         highAvailability,
         storage: {
             sizeGiB,
-            storageClass: normalizeValue(extractString(settings, 'disk_type')),
+            storageClass: normalizeValue(extractString(settings, "disk_type")),
         },
     };
 }
 function extractAzureFlexibleServerDimensions(obj, engine) {
-    const sku = extractString(obj, 'sku_name');
-    const storageMb = extractNumber(obj, 'storage_mb');
+    const sku = extractString(obj, "sku_name");
+    const storageMb = extractNumber(obj, "storage_mb");
     if (!sku || !storageMb) {
         return undefined;
     }
     const highAvailability = extractAzureHighAvailability(obj);
-    const deploymentModel = highAvailability ? 'zone_redundant' : 'single_zone';
+    const deploymentModel = highAvailability ? "zone_redundant" : "single_zone";
     return {
         engine,
         sku,
@@ -32497,63 +32507,63 @@ function extractAzureFlexibleServerDimensions(obj, engine) {
         highAvailability,
         storage: {
             sizeGiB: storageMb / 1024,
-            storageClass: normalizeValue(extractString(obj, 'storage_tier')),
-            iops: extractNumber(obj, 'iops'),
+            storageClass: normalizeValue(extractString(obj, "storage_tier")),
+            iops: extractNumber(obj, "iops"),
         },
     };
 }
 function extractAwsElastiCacheReplicationGroupDimensions(obj) {
-    const sku = extractString(obj, 'node_type');
+    const sku = extractString(obj, "node_type");
     if (!sku)
         return undefined;
     const totalNodes = getAwsReplicationGroupNodeCount(obj);
-    const highAvailability = extractBoolean(obj, 'automatic_failover_enabled') ||
-        extractBoolean(obj, 'multi_az_enabled') ||
+    const highAvailability = extractBoolean(obj, "automatic_failover_enabled") ||
+        extractBoolean(obj, "multi_az_enabled") ||
         totalNodes > 1;
     return {
-        engine: normalizeEngine(extractString(obj, 'engine')) ?? 'redis',
+        engine: normalizeEngine(extractString(obj, "engine")) ?? "redis",
         sku,
         highAvailability,
         replicaCount: totalNodes > 0 ? totalNodes - 1 : undefined,
     };
 }
 function extractAwsElastiCacheClusterDimensions(obj) {
-    const sku = extractString(obj, 'node_type');
+    const sku = extractString(obj, "node_type");
     if (!sku)
         return undefined;
-    const numCacheNodes = extractNumber(obj, 'num_cache_nodes') ?? 1;
+    const numCacheNodes = extractNumber(obj, "num_cache_nodes") ?? 1;
     return {
-        engine: normalizeEngine(extractString(obj, 'engine')) ?? 'redis',
+        engine: normalizeEngine(extractString(obj, "engine")) ?? "redis",
         sku,
         highAvailability: numCacheNodes > 1,
         replicaCount: numCacheNodes > 1 ? numCacheNodes - 1 : 0,
     };
 }
 function extractGcpRedisDimensions(obj) {
-    const memorySizeGiB = extractNumber(obj, 'memory_size_gb');
-    const tier = normalizeValue(extractString(obj, 'tier'));
+    const memorySizeGiB = extractNumber(obj, "memory_size_gb");
+    const tier = normalizeValue(extractString(obj, "tier"));
     if (!memorySizeGiB) {
         return undefined;
     }
-    const highAvailability = tier === 'standard_ha';
+    const highAvailability = tier === "standard_ha";
     return {
-        engine: 'redis',
+        engine: "redis",
         sku: `${memorySizeGiB}gib`,
         tier,
         highAvailability,
-        replicaCount: extractNumber(obj, 'replica_count') ?? (highAvailability ? 1 : 0),
+        replicaCount: extractNumber(obj, "replica_count") ?? (highAvailability ? 1 : 0),
     };
 }
 function extractAzureRedisDimensions(obj) {
-    const tier = extractString(obj, 'sku_name');
-    const family = extractString(obj, 'family');
-    const capacity = extractNumber(obj, 'capacity');
+    const tier = extractString(obj, "sku_name");
+    const family = extractString(obj, "family");
+    const capacity = extractNumber(obj, "capacity");
     if (!tier || !family || capacity === undefined) {
         return undefined;
     }
-    const highAvailability = tier.toLowerCase() !== 'basic';
+    const highAvailability = tier.toLowerCase() !== "basic";
     return {
-        engine: 'redis',
+        engine: "redis",
         sku: `${tier}:${family}:${capacity}`,
         tier: normalizeValue(tier),
         highAvailability,
@@ -32561,34 +32571,34 @@ function extractAzureRedisDimensions(obj) {
     };
 }
 function extractAwsEbsDimensions(obj) {
-    const sku = extractString(obj, 'type');
-    const sizeGiB = extractNumber(obj, 'size');
+    const sku = extractString(obj, "type");
+    const sizeGiB = extractNumber(obj, "size");
     if (!sku || !sizeGiB) {
         return undefined;
     }
     return {
         sku,
         sizeGiB,
-        iops: extractNumber(obj, 'iops'),
-        throughputMbps: extractNumber(obj, 'throughput'),
+        iops: extractNumber(obj, "iops"),
+        throughputMbps: extractNumber(obj, "throughput"),
     };
 }
 function extractGcpDiskDimensions(obj) {
-    const sku = extractLastSegment(extractString(obj, 'type'));
-    const sizeGiB = extractNumber(obj, 'size');
+    const sku = extractLastSegment(extractString(obj, "type"));
+    const sizeGiB = extractNumber(obj, "size");
     if (!sku || !sizeGiB) {
         return undefined;
     }
     return {
         sku,
         sizeGiB,
-        iops: extractNumber(obj, 'provisioned_iops'),
-        throughputMbps: extractNumber(obj, 'provisioned_throughput'),
+        iops: extractNumber(obj, "provisioned_iops"),
+        throughputMbps: extractNumber(obj, "provisioned_throughput"),
     };
 }
 function extractAzureManagedDiskDimensions(obj) {
-    const storageAccountType = extractString(obj, 'storage_account_type');
-    const sizeGiB = extractNumber(obj, 'disk_size_gb');
+    const storageAccountType = extractString(obj, "storage_account_type");
+    const sizeGiB = extractNumber(obj, "disk_size_gb");
     if (!storageAccountType || !sizeGiB) {
         return undefined;
     }
@@ -32596,25 +32606,25 @@ function extractAzureManagedDiskDimensions(obj) {
     return {
         sku: normalizedDisk.sku,
         sizeGiB: normalizedDisk.billedSizeGiB,
-        iops: extractNumber(obj, 'disk_iops_read_write'),
-        throughputMbps: extractNumber(obj, 'disk_mbps_read_write'),
+        iops: extractNumber(obj, "disk_iops_read_write"),
+        throughputMbps: extractNumber(obj, "disk_mbps_read_write"),
     };
 }
 function selectBeforeAfterState(action, regionBefore, regionAfter, before, after) {
     switch (action) {
-        case 'create':
+        case "create":
             return {
                 region: regionAfter ?? regionBefore,
                 before: null,
                 after: after ?? null,
             };
-        case 'delete':
+        case "delete":
             return {
                 region: regionBefore ?? regionAfter,
                 before: before ?? null,
                 after: null,
             };
-        case 'import':
+        case "import":
             if (before) {
                 return {
                     region: regionAfter ?? regionBefore,
@@ -32627,8 +32637,8 @@ function selectBeforeAfterState(action, regionBefore, regionAfter, before, after
                 before: null,
                 after: after ?? null,
             };
-        case 'update':
-        case 'replace':
+        case "update":
+        case "replace":
         default:
             return {
                 region: regionAfter ?? regionBefore,
@@ -32638,170 +32648,176 @@ function selectBeforeAfterState(action, regionBefore, regionAfter, before, after
     }
 }
 function extractString(obj, key) {
-    if (!obj || typeof obj !== 'object')
+    if (!obj || typeof obj !== "object")
         return undefined;
     const value = obj[key];
-    return typeof value === 'string' && value.length > 0 ? value : undefined;
+    return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 function extractNumber(obj, key) {
-    if (!obj || typeof obj !== 'object')
+    if (!obj || typeof obj !== "object")
         return undefined;
     const value = obj[key];
-    if (typeof value === 'number' && Number.isFinite(value))
+    if (typeof value === "number" && Number.isFinite(value))
         return value;
-    if (typeof value === 'string' && value.length > 0) {
+    if (typeof value === "string" && value.length > 0) {
         const numeric = Number(value);
         return Number.isFinite(numeric) ? numeric : undefined;
     }
     return undefined;
 }
 function extractBoolean(obj, key) {
-    if (!obj || typeof obj !== 'object')
+    if (!obj || typeof obj !== "object")
         return undefined;
     const value = obj[key];
-    return typeof value === 'boolean' ? value : undefined;
+    return typeof value === "boolean" ? value : undefined;
 }
 function extractFirstBlock(obj, key) {
-    if (!obj || typeof obj !== 'object')
+    if (!obj || typeof obj !== "object")
         return undefined;
     const value = obj[key];
     if (Array.isArray(value)) {
         const [first] = value;
-        return first && typeof first === 'object' ? first : undefined;
+        return first && typeof first === "object"
+            ? first
+            : undefined;
     }
-    return value && typeof value === 'object' ? value : undefined;
+    return value && typeof value === "object"
+        ? value
+        : undefined;
 }
 function extractStringArray(obj, key) {
-    if (!obj || typeof obj !== 'object')
+    if (!obj || typeof obj !== "object")
         return undefined;
     const value = obj[key];
     if (!Array.isArray(value))
         return undefined;
-    return value.filter((item) => typeof item === 'string' && item.length > 0);
+    return value.filter((item) => typeof item === "string" && item.length > 0);
 }
 function extractAwsRegion(obj) {
-    if (!obj || typeof obj !== 'object')
+    if (!obj || typeof obj !== "object")
         return undefined;
-    const explicit = extractString(obj, 'region');
+    const explicit = extractString(obj, "region");
     if (explicit)
         return explicit;
-    const availabilityZone = extractString(obj, 'availability_zone');
-    return availabilityZone ? availabilityZone.replace(/[a-z]$/, '') : undefined;
+    const availabilityZone = extractString(obj, "availability_zone");
+    return availabilityZone ? availabilityZone.replace(/[a-z]$/, "") : undefined;
 }
 function extractAwsRegionFromArray(obj, keys) {
     for (const key of keys) {
         const values = extractStringArray(obj, key);
         const first = values?.[0];
         if (first) {
-            return first.replace(/[a-z]$/, '');
+            return first.replace(/[a-z]$/, "");
         }
     }
     return undefined;
 }
 function extractGcpRegion(obj) {
-    if (!obj || typeof obj !== 'object')
+    if (!obj || typeof obj !== "object")
         return undefined;
-    const explicitRegion = extractString(obj, 'region');
+    const explicitRegion = extractString(obj, "region");
     if (explicitRegion)
         return explicitRegion;
-    const zone = extractString(obj, 'zone');
-    return zone ? zone.replace(/-[a-z]$/, '') : undefined;
+    const zone = extractString(obj, "zone");
+    return zone ? zone.replace(/-[a-z]$/, "") : undefined;
 }
 function extractGcpSqlRegion(obj) {
-    const explicitRegion = extractString(obj, 'region');
+    const explicitRegion = extractString(obj, "region");
     if (explicitRegion)
         return explicitRegion;
-    const settings = extractFirstBlock(obj, 'settings');
-    const locationPreference = extractFirstBlock(settings, 'location_preference');
-    const zone = extractString(locationPreference, 'zone');
-    return zone ? zone.replace(/-[a-z]$/, '') : undefined;
+    const settings = extractFirstBlock(obj, "settings");
+    const locationPreference = extractFirstBlock(settings, "location_preference");
+    const zone = extractString(locationPreference, "zone");
+    return zone ? zone.replace(/-[a-z]$/, "") : undefined;
 }
 function extractLastSegment(value) {
     if (!value)
         return undefined;
-    const segment = value.split('/').pop();
+    const segment = value.split("/").pop();
     return segment && segment.length > 0 ? segment : value;
 }
 function normalizeEngine(value) {
     if (!value)
         return undefined;
-    return value.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+    return value.toLowerCase().replace(/[^a-z0-9]+/g, "_");
 }
 function normalizeGcpDatabaseVersion(value) {
     if (!value)
         return undefined;
-    if (value.startsWith('POSTGRES'))
-        return 'postgres';
-    if (value.startsWith('MYSQL'))
-        return 'mysql';
-    if (value.startsWith('SQLSERVER'))
-        return 'sqlserver';
+    if (value.startsWith("POSTGRES"))
+        return "postgres";
+    if (value.startsWith("MYSQL"))
+        return "mysql";
+    if (value.startsWith("SQLSERVER"))
+        return "sqlserver";
     return normalizeEngine(value);
 }
 function normalizeValue(value) {
     if (!value)
         return undefined;
-    return value.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+    return value.toLowerCase().replace(/[^a-z0-9]+/g, "_");
 }
 function normalizeAzureManagedDiskSku(storageAccountType, requestedSizeGiB) {
-    if (storageAccountType.startsWith('UltraSSD')) {
+    if (storageAccountType.startsWith("UltraSSD")) {
         return {
             sku: storageAccountType,
             billedSizeGiB: mapUltraDiskSize(requestedSizeGiB),
         };
     }
-    const diskTypePrefix = storageAccountType.split('_')[0];
+    const diskTypePrefix = storageAccountType.split("_")[0];
     const diskName = mapAzureManagedDiskName(diskTypePrefix, requestedSizeGiB);
     return {
         sku: diskName ? `${storageAccountType}:${diskName}` : storageAccountType,
-        billedSizeGiB: diskName ? mapAzureManagedDiskSize(diskTypePrefix, diskName) : requestedSizeGiB,
+        billedSizeGiB: diskName
+            ? mapAzureManagedDiskSize(diskTypePrefix, diskName)
+            : requestedSizeGiB,
     };
 }
 const AZURE_MANAGED_DISK_SIZE_MAP = {
     Standard: [
-        ['S4', 32],
-        ['S6', 64],
-        ['S10', 128],
-        ['S15', 256],
-        ['S20', 512],
-        ['S30', 1024],
-        ['S40', 2048],
-        ['S50', 4096],
-        ['S60', 8192],
-        ['S70', 16384],
-        ['S80', 32767],
+        ["S4", 32],
+        ["S6", 64],
+        ["S10", 128],
+        ["S15", 256],
+        ["S20", 512],
+        ["S30", 1024],
+        ["S40", 2048],
+        ["S50", 4096],
+        ["S60", 8192],
+        ["S70", 16384],
+        ["S80", 32767],
     ],
     StandardSSD: [
-        ['E1', 4],
-        ['E2', 8],
-        ['E3', 16],
-        ['E4', 32],
-        ['E6', 64],
-        ['E10', 128],
-        ['E15', 256],
-        ['E20', 512],
-        ['E30', 1024],
-        ['E40', 2048],
-        ['E50', 4096],
-        ['E60', 8192],
-        ['E70', 16384],
-        ['E80', 32767],
+        ["E1", 4],
+        ["E2", 8],
+        ["E3", 16],
+        ["E4", 32],
+        ["E6", 64],
+        ["E10", 128],
+        ["E15", 256],
+        ["E20", 512],
+        ["E30", 1024],
+        ["E40", 2048],
+        ["E50", 4096],
+        ["E60", 8192],
+        ["E70", 16384],
+        ["E80", 32767],
     ],
     Premium: [
-        ['P1', 4],
-        ['P2', 8],
-        ['P3', 16],
-        ['P4', 32],
-        ['P6', 64],
-        ['P10', 128],
-        ['P15', 256],
-        ['P20', 512],
-        ['P30', 1024],
-        ['P40', 2048],
-        ['P50', 4096],
-        ['P60', 8192],
-        ['P70', 16384],
-        ['P80', 32767],
+        ["P1", 4],
+        ["P2", 8],
+        ["P3", 16],
+        ["P4", 32],
+        ["P6", 64],
+        ["P10", 128],
+        ["P15", 256],
+        ["P20", 512],
+        ["P30", 1024],
+        ["P40", 2048],
+        ["P50", 4096],
+        ["P60", 8192],
+        ["P70", 16384],
+        ["P80", 32767],
     ],
 };
 function mapAzureManagedDiskName(diskTypePrefix, requestedSizeGiB) {
@@ -32832,21 +32848,22 @@ function mapUltraDiskSize(requestedSizeGiB) {
             return size;
         }
     }
-    return Math.ceil(requestedSizeGiB / AZURE_ULTRA_DISK_SIZE_STEP) * AZURE_ULTRA_DISK_SIZE_STEP;
+    return (Math.ceil(requestedSizeGiB / AZURE_ULTRA_DISK_SIZE_STEP) *
+        AZURE_ULTRA_DISK_SIZE_STEP);
 }
 function extractAzureHighAvailability(obj) {
-    const block = extractFirstBlock(obj, 'high_availability');
-    const mode = normalizeValue(extractString(block, 'mode'));
+    const block = extractFirstBlock(obj, "high_availability");
+    const mode = normalizeValue(extractString(block, "mode"));
     if (!mode)
         return undefined;
-    return mode !== 'disabled' && mode !== 'same_zone';
+    return mode !== "disabled" && mode !== "same_zone";
 }
 function getAwsReplicationGroupNodeCount(obj) {
-    const numCacheClusters = extractNumber(obj, 'num_cache_clusters');
+    const numCacheClusters = extractNumber(obj, "num_cache_clusters");
     if (numCacheClusters)
         return numCacheClusters;
-    const numNodeGroups = extractNumber(obj, 'num_node_groups');
-    const replicasPerNodeGroup = extractNumber(obj, 'replicas_per_node_group');
+    const numNodeGroups = extractNumber(obj, "num_node_groups");
+    const replicasPerNodeGroup = extractNumber(obj, "replicas_per_node_group");
     if (numNodeGroups && replicasPerNodeGroup !== undefined) {
         return numNodeGroups * (replicasPerNodeGroup + 1);
     }
@@ -32903,8 +32920,8 @@ function buildRoutingPayload(options) {
  * Parse and validate the Terraform plan JSON structure
  */
 function parsePlanJson(planJson) {
-    if (!planJson || typeof planJson !== 'object') {
-        throw new Error('Invalid plan JSON: not an object');
+    if (!planJson || typeof planJson !== "object") {
+        throw new Error("Invalid plan JSON: not an object");
     }
     const plan = planJson;
     return {
@@ -32929,11 +32946,11 @@ function parsePlanJson(planJson) {
 function extractResources(plan) {
     const resources = [];
     if (!plan.resourceChanges || !Array.isArray(plan.resourceChanges)) {
-        core.debug('No resource_changes found in plan');
+        core.debug("No resource_changes found in plan");
         return resources;
     }
     for (const change of plan.resourceChanges) {
-        if (!change || typeof change !== 'object') {
+        if (!change || typeof change !== "object") {
             continue;
         }
         const resourceChange = change;
@@ -32950,13 +32967,13 @@ function extractResources(plan) {
         // Skip no-op resources that aren't imports
         const importing = changeData.importing;
         const importingId = importing?.id;
-        if (actions.length === 1 && actions[0] === 'no-op' && !importingId) {
+        if (actions.length === 1 && actions[0] === "no-op" && !importingId) {
             continue;
         }
         // Extract routing-safe fields only
         const address = resourceChange.address;
         if (!address) {
-            core.debug('Skipping resource without address');
+            core.debug("Skipping resource without address");
             continue;
         }
         const moduleAddress = resourceChange.module_address;
@@ -32969,7 +32986,7 @@ function extractResources(plan) {
         // Build resource object with ONLY routing-safe fields
         const resource = {
             address,
-            type: type || 'unknown',
+            type: type || "unknown",
             actions: normalizedActions,
         };
         // Add optional fields only if present
@@ -32979,7 +32996,9 @@ function extractResources(plan) {
         if (actionReason) {
             resource.actionReason = actionReason;
         }
-        if (replacePaths && Array.isArray(replacePaths) && replacePaths.length > 0) {
+        if (replacePaths &&
+            Array.isArray(replacePaths) &&
+            replacePaths.length > 0) {
             resource.replacePaths = replacePaths;
         }
         if (importingId) {
@@ -32993,18 +33012,18 @@ function extractResources(plan) {
  * Validate that no forbidden fields are present
  * This is a safety check to ensure we're not leaking sensitive data
  */
-function validateNoForbiddenFields(obj, path = '') {
+function validateNoForbiddenFields(obj, path = "") {
     const forbiddenFields = [
-        'before',
-        'after',
-        'variables',
-        'values',
-        'planned_values',
-        'prior_state',
-        'configuration',
+        "before",
+        "after",
+        "variables",
+        "values",
+        "planned_values",
+        "prior_state",
+        "configuration",
     ];
     const violations = [];
-    if (obj === null || typeof obj !== 'object') {
+    if (obj === null || typeof obj !== "object") {
         return violations;
     }
     if (Array.isArray(obj)) {
@@ -33015,10 +33034,11 @@ function validateNoForbiddenFields(obj, path = '') {
     }
     for (const [key, value] of Object.entries(obj)) {
         const currentPath = path ? `${path}.${key}` : key;
-        if (forbiddenFields.includes(key) && !isAllowedPricingDimensionsPath(currentPath)) {
+        if (forbiddenFields.includes(key) &&
+            !isAllowedPricingDimensionsPath(currentPath)) {
             violations.push(currentPath);
         }
-        if (typeof value === 'object' && value !== null) {
+        if (typeof value === "object" && value !== null) {
             violations.push(...validateNoForbiddenFields(value, currentPath));
         }
     }
@@ -33041,7 +33061,7 @@ function isAllowedPricingDimensionsPath(path) {
  * Send the routing payload to the API with HMAC signing
  */
 async function sendPayload(apiUrl, apiKey, payload) {
-    const url = `${apiUrl.replace(/\/$/, '')}/ingest`;
+    const url = `${apiUrl.replace(/\/$/, "")}/ingest`;
     const body = stableSerialize(payload);
     // Keep sending the legacy signature header for backward compatibility while
     // the backend transitions from global HMAC secrets to workspace API keys.
@@ -33050,28 +33070,28 @@ async function sendPayload(apiUrl, apiKey, payload) {
     core.debug(`Request ID: ${payload.requestId}`);
     core.debug(`Signature: ${signature.slice(0, 16)}...`);
     const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-            'Content-Type': 'application/json',
-            'X-API-Key': apiKey,
-            'X-Signature': signature,
-            'X-Request-Id': payload.requestId,
-            'X-Source': 'github-actions',
+            "Content-Type": "application/json",
+            "X-API-Key": apiKey,
+            "X-Signature": signature,
+            "X-Request-Id": payload.requestId,
+            "X-Source": "github-actions",
         },
         body,
     });
     // Handle HTTP errors
     if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Unknown error');
+        const errorText = await response.text().catch(() => "Unknown error");
         // Check for duplicate (409 Conflict)
         if (response.status === 409) {
             return {
-                status: 'duplicate',
-                message: 'Request already processed',
+                status: "duplicate",
+                message: "Request already processed",
             };
         }
         return {
-            status: 'failed',
+            status: "failed",
             message: `HTTP ${response.status}: ${errorText.slice(0, 200)}`,
         };
     }
@@ -33082,30 +33102,42 @@ async function sendPayload(apiUrl, apiKey, payload) {
     }
     catch {
         // Non-JSON success response is acceptable
-        return { status: 'accepted' };
+        return { status: "accepted" };
     }
     // Map API response status to our result status
     switch (data.status) {
-        case 'accepted':
-            return { status: 'accepted', message: data.message, evaluation: data.evaluation };
-        case 'duplicate':
-            return { status: 'duplicate', message: data.message, evaluation: data.evaluation };
-        case 'skipped':
-            return { status: 'skipped', message: data.message, evaluation: data.evaluation };
-        case 'error':
-            return { status: 'failed', message: data.message };
+        case "accepted":
+            return {
+                status: "accepted",
+                message: data.message,
+                evaluation: data.evaluation,
+            };
+        case "duplicate":
+            return {
+                status: "duplicate",
+                message: data.message,
+                evaluation: data.evaluation,
+            };
+        case "skipped":
+            return {
+                status: "skipped",
+                message: data.message,
+                evaluation: data.evaluation,
+            };
+        case "error":
+            return { status: "failed", message: data.message };
         default:
             // Unknown status, but HTTP was OK
-            return { status: 'accepted', evaluation: data.evaluation };
+            return { status: "accepted", evaluation: data.evaluation };
     }
 }
 /**
  * Sign a payload using HMAC-SHA256
  */
 function signPayload(payload, secret) {
-    const hmac = external_crypto_.createHmac('sha256', secret);
-    hmac.update(payload, 'utf8');
-    return `sha256=${hmac.digest('hex')}`;
+    const hmac = external_crypto_.createHmac("sha256", secret);
+    hmac.update(payload, "utf8");
+    return `sha256=${hmac.digest("hex")}`;
 }
 /**
  * Verify a payload signature (for testing purposes)
@@ -33113,7 +33145,9 @@ function signPayload(payload, secret) {
 function verifySignature(payload, secret, signature) {
     const expected = signPayload(payload, secret);
     try {
-        const normalized = signature.startsWith('sha256=') ? signature : `sha256=${signature}`;
+        const normalized = signature.startsWith("sha256=")
+            ? signature
+            : `sha256=${signature}`;
         return crypto.timingSafeEqual(Buffer.from(normalized), Buffer.from(expected));
     }
     catch {
@@ -37017,18 +37051,18 @@ function parseSlackWebhooks(input) {
     const webhooks = new Map();
     if (!input.trim())
         return webhooks;
-    for (const line of input.split('\n')) {
+    for (const line of input.split("\n")) {
         const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith('#'))
+        if (!trimmed || trimmed.startsWith("#"))
             continue;
-        const eqIndex = trimmed.indexOf('=');
+        const eqIndex = trimmed.indexOf("=");
         if (eqIndex < 1)
             continue;
         const name = trimmed.slice(0, eqIndex).trim();
         const url = trimmed.slice(eqIndex + 1).trim();
         if (!name)
             continue;
-        if (!url.startsWith('https://')) {
+        if (!url.startsWith("https://")) {
             core.warning(`slack-webhooks: skipping "${name}" — URL must start with https://`);
             continue;
         }
@@ -37048,7 +37082,7 @@ async function resolveSlackChannels(configPath, matchedRuleIds) {
         return [];
     let raw;
     try {
-        raw = await (0,promises_namespaceObject.readFile)(configPath, 'utf-8');
+        raw = await (0,promises_namespaceObject.readFile)(configPath, "utf-8");
     }
     catch {
         // No config file present — nothing to resolve
@@ -37059,10 +37093,10 @@ async function resolveSlackChannels(configPath, matchedRuleIds) {
         parsed = jsYaml.load(raw);
     }
     catch {
-        core.warning('slack-sender: could not parse .mergewire.yml, skipping Slack channel resolution');
+        core.warning("slack-sender: could not parse .mergewire.yml, skipping Slack channel resolution");
         return [];
     }
-    if (!parsed || typeof parsed !== 'object')
+    if (!parsed || typeof parsed !== "object")
         return [];
     const config = parsed;
     if (!Array.isArray(config.rules))
@@ -37071,8 +37105,8 @@ async function resolveSlackChannels(configPath, matchedRuleIds) {
     const channels = new Set();
     for (const rule of config.rules) {
         if (rule &&
-            typeof rule === 'object' &&
-            typeof rule.id === 'string' &&
+            typeof rule === "object" &&
+            typeof rule.id === "string" &&
             matchedIdSet.has(rule.id) &&
             rule.notify?.slack) {
             channels.add(rule.notify.slack);
@@ -37084,18 +37118,18 @@ async function resolveSlackChannels(configPath, matchedRuleIds) {
 // Slack message building
 // ============================================================================
 const SEVERITY_EMOJI = {
-    low: '🔵',
-    medium: '🟡',
-    high: '🔴',
+    low: "🔵",
+    medium: "🟡",
+    high: "🔴",
 };
 const SEVERITY_LABEL = {
-    low: 'Low',
-    medium: 'Medium',
-    high: 'High',
+    low: "Low",
+    medium: "Medium",
+    high: "High",
 };
 function buildSlackMessage(options) {
     const { owner, name } = options.repository;
-    const emoji = SEVERITY_EMOJI[options.severity] ?? '⚪';
+    const emoji = SEVERITY_EMOJI[options.severity] ?? "⚪";
     const label = SEVERITY_LABEL[options.severity] ?? options.severity.toUpperCase();
     const severityText = `${emoji} *${label} Severity*`;
     const repoRef = `*${owner}/${name}*`;
@@ -37103,13 +37137,17 @@ function buildSlackMessage(options) {
     // Build evidence summary (up to 3 items)
     const evidence = options.evaluation.evidence ?? [];
     const evidenceLines = evidence.slice(0, 3).map((item) => {
-        const summary = item.summary && item.summary.length > 100 ? item.summary.slice(0, 97) + '...' : item.summary;
-        return `• *${item.title}*${summary ? `: ${summary}` : ''}`;
+        const summary = item.summary && item.summary.length > 100
+            ? item.summary.slice(0, 97) + "..."
+            : item.summary;
+        return `• *${item.title}*${summary ? `: ${summary}` : ""}`;
     });
     if (evidence.length > 3) {
         evidenceLines.push(`_...and ${evidence.length - 3} more_`);
     }
-    const evidenceText = evidenceLines.length > 0 ? evidenceLines.join('\n') : '_No specific evidence provided_';
+    const evidenceText = evidenceLines.length > 0
+        ? evidenceLines.join("\n")
+        : "_No specific evidence provided_";
     // Build reviewers summary
     const reviewers = options.evaluation.requestedReviewers;
     const reviewerParts = [];
@@ -37117,33 +37155,38 @@ function buildSlackMessage(options) {
         reviewerParts.push(...reviewers.users.map((u) => `@${u}`));
     if (reviewers?.teams?.length)
         reviewerParts.push(...reviewers.teams.map((t) => `@${t}`));
-    const reviewersText = reviewerParts.length > 0 ? reviewerParts.join(', ') : '_No reviewers requested_';
+    const reviewersText = reviewerParts.length > 0
+        ? reviewerParts.join(", ")
+        : "_No reviewers requested_";
     const blocks = [
         {
-            type: 'section',
+            type: "section",
             text: {
-                type: 'mrkdwn',
+                type: "mrkdwn",
                 text: `${severityText} — Terraform Review Required`,
             },
         },
         {
-            type: 'section',
+            type: "section",
             fields: [
-                { type: 'mrkdwn', text: `*Repository:*\n${repoRef}` },
-                { type: 'mrkdwn', text: `*Pull Request:*\n${prRef}` },
+                { type: "mrkdwn", text: `*Repository:*\n${repoRef}` },
+                { type: "mrkdwn", text: `*Pull Request:*\n${prRef}` },
             ],
         },
         {
-            type: 'section',
-            text: { type: 'mrkdwn', text: `*Evidence:*\n${evidenceText}` },
+            type: "section",
+            text: { type: "mrkdwn", text: `*Evidence:*\n${evidenceText}` },
         },
         {
-            type: 'section',
-            text: { type: 'mrkdwn', text: `*Requested Reviewers:*\n${reviewersText}` },
+            type: "section",
+            text: {
+                type: "mrkdwn",
+                text: `*Requested Reviewers:*\n${reviewersText}`,
+            },
         },
         {
-            type: 'section',
-            text: { type: 'mrkdwn', text: `<${options.prUrl}|View Pull Request>` },
+            type: "section",
+            text: { type: "mrkdwn", text: `<${options.prUrl}|View Pull Request>` },
         },
     ];
     return {
@@ -37157,23 +37200,32 @@ function buildSlackMessage(options) {
 async function sendWebhook(webhookUrl, payload) {
     try {
         const response = await fetch(webhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
         });
         if (!response.ok) {
-            const body = await response.text().catch(() => 'unknown');
-            return { success: false, error: `Slack webhook returned ${response.status}: ${body}` };
+            const body = await response.text().catch(() => "unknown");
+            return {
+                success: false,
+                error: `Slack webhook returned ${response.status}: ${body}`,
+            };
         }
-        const body = await response.text().catch(() => '');
-        if (body !== 'ok') {
-            return { success: false, error: `Slack webhook returned unexpected response: ${body}` };
+        const body = await response.text().catch(() => "");
+        if (body !== "ok") {
+            return {
+                success: false,
+                error: `Slack webhook returned unexpected response: ${body}`,
+            };
         }
         return { success: true };
     }
     catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        return { success: false, error: `Failed to send Slack webhook: ${message}` };
+        const message = error instanceof Error ? error.message : "Unknown error";
+        return {
+            success: false,
+            error: `Failed to send Slack webhook: ${message}`,
+        };
     }
 }
 // ============================================================================
@@ -37191,12 +37243,12 @@ async function sendRuleSlackNotifications(options) {
     if (webhookMap.size === 0)
         return;
     if (matchedRuleIds.length === 0) {
-        core.info('  No matched rules — skipping Slack notifications');
+        core.info("  No matched rules — skipping Slack notifications");
         return;
     }
     const channels = await resolveSlackChannels(configPath, matchedRuleIds);
     if (channels.length === 0) {
-        core.info('  No rules with notify.slack found among matched rules — skipping');
+        core.info("  No rules with notify.slack found among matched rules — skipping");
         return;
     }
     const prUrl = `${githubServerUrl}/${repository.owner}/${repository.name}/pull/${prNumber}`;
@@ -37247,18 +37299,18 @@ function parseWebhooks(input) {
     const webhooks = new Map();
     if (!input.trim())
         return webhooks;
-    for (const line of input.split('\n')) {
+    for (const line of input.split("\n")) {
         const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith('#'))
+        if (!trimmed || trimmed.startsWith("#"))
             continue;
-        const eqIndex = trimmed.indexOf('=');
+        const eqIndex = trimmed.indexOf("=");
         if (eqIndex < 1)
             continue;
         const name = trimmed.slice(0, eqIndex).trim();
         const url = trimmed.slice(eqIndex + 1).trim();
         if (!name)
             continue;
-        if (!url.startsWith('https://')) {
+        if (!url.startsWith("https://")) {
             core.warning(`webhooks: skipping "${name}" — URL must start with https://`);
             continue;
         }
@@ -37278,7 +37330,7 @@ async function resolveWebhooks(configPath, matchedRuleIds) {
         return [];
     let raw;
     try {
-        raw = await (0,promises_namespaceObject.readFile)(configPath, 'utf-8');
+        raw = await (0,promises_namespaceObject.readFile)(configPath, "utf-8");
     }
     catch {
         // No config file present
@@ -37289,10 +37341,10 @@ async function resolveWebhooks(configPath, matchedRuleIds) {
         parsed = jsYaml.load(raw);
     }
     catch {
-        core.warning('webhook-sender: could not parse .mergewire.yml, skipping webhook resolution');
+        core.warning("webhook-sender: could not parse .mergewire.yml, skipping webhook resolution");
         return [];
     }
-    if (!parsed || typeof parsed !== 'object')
+    if (!parsed || typeof parsed !== "object")
         return [];
     const config = parsed;
     if (!Array.isArray(config.rules))
@@ -37301,8 +37353,8 @@ async function resolveWebhooks(configPath, matchedRuleIds) {
     const hooks = new Set();
     for (const rule of config.rules) {
         if (rule &&
-            typeof rule === 'object' &&
-            typeof rule.id === 'string' &&
+            typeof rule === "object" &&
+            typeof rule.id === "string" &&
             matchedIdSet.has(rule.id) &&
             rule.notify?.webhook) {
             hooks.add(rule.notify.webhook);
@@ -37314,35 +37366,38 @@ async function resolveWebhooks(configPath, matchedRuleIds) {
 // Webhook delivery
 // ============================================================================
 function webhook_sender_signPayload(payloadJson, apiKey) {
-    const hmac = external_crypto_.createHmac('sha256', apiKey);
-    hmac.update(payloadJson, 'utf8');
-    return `sha256=${hmac.digest('hex')}`;
+    const hmac = external_crypto_.createHmac("sha256", apiKey);
+    hmac.update(payloadJson, "utf8");
+    return `sha256=${hmac.digest("hex")}`;
 }
 async function webhook_sender_sendWebhook(webhookUrl, payload, webhookSecret) {
     try {
         const payloadJson = JSON.stringify(payload);
         const headers = {
-            'Content-Type': 'application/json',
-            'user-agent': 'mergewire-action/1.0',
+            "Content-Type": "application/json",
+            "user-agent": "mergewire-action/1.0",
         };
         if (webhookSecret) {
             const signature = webhook_sender_signPayload(payloadJson, webhookSecret);
-            headers['x-mergewire-signature'] = signature;
+            headers["x-mergewire-signature"] = signature;
         }
         const response = await fetch(webhookUrl, {
-            method: 'POST',
+            method: "POST",
             headers,
             body: payloadJson,
             signal: AbortSignal.timeout(10000),
         });
         if (!response.ok) {
-            const body = await response.text().catch(() => 'unknown');
-            return { success: false, error: `Webhook returned ${response.status}: ${body}` };
+            const body = await response.text().catch(() => "unknown");
+            return {
+                success: false,
+                error: `Webhook returned ${response.status}: ${body}`,
+            };
         }
         return { success: true };
     }
     catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
+        const message = error instanceof Error ? error.message : "Unknown error";
         return { success: false, error: `Failed to send webhook: ${message}` };
     }
 }
@@ -37354,12 +37409,12 @@ async function sendRuleWebhooks(options) {
     if (webhookMap.size === 0)
         return;
     if (matchedRuleIds.length === 0) {
-        core.info('  No matched rules — skipping webhooks');
+        core.info("  No matched rules — skipping webhooks");
         return;
     }
     const hooks = await resolveWebhooks(configPath, matchedRuleIds);
     if (hooks.length === 0) {
-        core.info('  No rules with notify.webhook found among matched rules — skipping');
+        core.info("  No rules with notify.webhook found among matched rules — skipping");
         return;
     }
     const prUrl = `${githubServerUrl}/${repository.owner}/${repository.name}/pull/${prNumber}`;
@@ -37413,30 +37468,30 @@ async function sendRuleWebhooks(options) {
 
 
 
-const COMMENT_MARKER = '<!-- MergeWire Evaluation -->';
+const COMMENT_MARKER = "<!-- MergeWire Evaluation -->";
 async function run() {
     const startTime = Date.now();
-    let requestId = '';
+    let requestId = "";
     try {
         // Get inputs
-        const apiUrl = core.getInput('api-url', { required: true });
-        const apiKey = core.getInput('api-key') || core.getInput('api-secret');
-        const terraformRoot = core.getInput('terraform-root', { required: true });
-        const workspace = core.getInput('workspace') || undefined;
-        const environment = core.getInput('environment') || undefined;
-        const failOnApiError = core.getBooleanInput('fail-on-api-error');
-        const githubToken = core.getInput('github-token') || undefined;
-        const postComment = core.getBooleanInput('post-comment');
-        const requestReviewers = core.getBooleanInput('request-reviewers');
-        const applyLabels = core.getBooleanInput('apply-labels');
-        core.info('MergeWire - Starting...');
+        const apiUrl = core.getInput("api-url", { required: true });
+        const apiKey = core.getInput("api-key") || core.getInput("api-secret");
+        const terraformRoot = core.getInput("terraform-root", { required: true });
+        const workspace = core.getInput("workspace") || undefined;
+        const environment = core.getInput("environment") || undefined;
+        const failOnApiError = core.getBooleanInput("fail-on-api-error");
+        const githubToken = core.getInput("github-token") || undefined;
+        const postComment = core.getBooleanInput("post-comment");
+        const requestReviewers = core.getBooleanInput("request-reviewers");
+        const applyLabels = core.getBooleanInput("apply-labels");
+        core.info("MergeWire - Starting...");
         core.info(`  Terraform root: ${terraformRoot}`);
         core.info(`  API URL: ${apiUrl}`);
         if (!apiKey) {
-            throw new Error('A workspace API key is required. Provide api-key.');
+            throw new Error("A workspace API key is required. Provide api-key.");
         }
-        if (!core.getInput('api-key') && core.getInput('api-secret')) {
-            core.warning('The api-secret input is deprecated. Use api-key for workspace-scoped auth.');
+        if (!core.getInput("api-key") && core.getInput("api-secret")) {
+            core.warning("The api-secret input is deprecated. Use api-key for workspace-scoped auth.");
         }
         if (workspace)
             core.info(`  Workspace: ${workspace}`);
@@ -37446,13 +37501,13 @@ async function run() {
         requestId = external_crypto_.randomUUID();
         core.info(`  Request ID: ${requestId}`);
         // Extract GitHub context
-        core.info('\n[1/5] Extracting GitHub context...');
+        core.info("\n[1/5] Extracting GitHub context...");
         const githubContext = extractGitHubContext();
         core.info(`  Repository: ${githubContext.repo.owner}/${githubContext.repo.name}`);
         core.info(`  PR #${githubContext.pullRequest.number}`);
         core.info(`  Base: ${githubContext.pullRequest.baseRef} → Head: ${githubContext.pullRequest.headRef}`);
         // Get changed files
-        core.info('\n[2/5] Getting changed files...');
+        core.info("\n[2/5] Getting changed files...");
         let changedFiles = [];
         if (githubToken) {
             try {
@@ -37465,14 +37520,14 @@ async function run() {
             }
         }
         else {
-            core.warning('No GitHub token provided, skipping changed files detection');
+            core.warning("No GitHub token provided, skipping changed files detection");
         }
         // Run Terraform
-        core.info('\n[3/5] Running Terraform...');
+        core.info("\n[3/5] Running Terraform...");
         const planResult = await runTerraform(terraformRoot, workspace);
         core.info(`  Plan captured: ${planResult.binarySize} bytes`);
         // Build routing payload
-        core.info('\n[4/5] Building routing payload...');
+        core.info("\n[4/5] Building routing payload...");
         const payload = buildRoutingPayload({
             requestId,
             source: githubContext.source,
@@ -37487,7 +37542,7 @@ async function run() {
         // Safety check: assert no sensitive data
         try {
             assertSafePayload(payload);
-            core.info('  Payload passed safety checks');
+            core.info("  Payload passed safety checks");
         }
         catch (error) {
             core.setFailed(`Payload safety check failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -37496,11 +37551,11 @@ async function run() {
         core.info(`  Resources: ${payload.resources.length}`);
         core.info(`  Summary: ${payload.summary.creates} creates, ${payload.summary.updates} updates, ${payload.summary.deletes} deletes, ${payload.summary.replaces} replaces, ${payload.summary.imports} imports`);
         // Send to API
-        core.info('\n[5/5] Sending to API...');
+        core.info("\n[5/5] Sending to API...");
         const result = await sendPayload(apiUrl, apiKey, payload);
         // Write-back to GitHub using GITHUB_TOKEN
         if (githubToken && result.evaluation) {
-            core.info('\n[6/6] Writing back evaluation results...');
+            core.info("\n[6/6] Writing back evaluation results...");
             await writeBackToGitHub({
                 token: githubToken,
                 owner: githubContext.repo.owner,
@@ -37512,20 +37567,21 @@ async function run() {
                 applyLabels,
             });
         }
-        else if (!githubToken && (postComment || requestReviewers || applyLabels)) {
-            core.warning('No GitHub token provided, skipping write-back (comment/reviewers/labels)');
+        else if (!githubToken &&
+            (postComment || requestReviewers || applyLabels)) {
+            core.warning("No GitHub token provided, skipping write-back (comment/reviewers/labels)");
         }
         // Send rule-based Slack notifications via user-provided webhooks
-        const githubServerUrl = (core.getInput('github-server-url') ||
+        const githubServerUrl = (core.getInput("github-server-url") ||
             process.env.GITHUB_SERVER_URL ||
-            'https://github.com').replace(/\/$/, '');
-        const slackWebhooksInput = core.getInput('slack-webhooks');
+            "https://github.com").replace(/\/$/, "");
+        const slackWebhooksInput = core.getInput("slack-webhooks");
         if (slackWebhooksInput.trim() && result.evaluation) {
-            core.info('\n[→] Sending rule-based Slack notifications...');
+            core.info("\n[→] Sending rule-based Slack notifications...");
             await sendRuleSlackNotifications({
                 webhookMap: parseSlackWebhooks(slackWebhooksInput),
                 matchedRuleIds: result.evaluation.matchedRuleIds,
-                configPath: external_path_.join(process.cwd(), '.mergewire.yml'),
+                configPath: external_path_.join(process.cwd(), ".mergewire.yml"),
                 evaluation: result.evaluation,
                 repository: githubContext.repo,
                 prNumber: githubContext.pullRequest.number,
@@ -37533,14 +37589,14 @@ async function run() {
             });
         }
         // Send generic webhooks
-        const webhooksInput = core.getInput('webhooks');
-        const webhookSecret = core.getInput('webhook-secret');
+        const webhooksInput = core.getInput("webhooks");
+        const webhookSecret = core.getInput("webhook-secret");
         if (webhooksInput.trim() && result.evaluation) {
-            core.info('\n[→] Sending rule-based generic webhooks...');
+            core.info("\n[→] Sending rule-based generic webhooks...");
             await sendRuleWebhooks({
                 webhookMap: parseWebhooks(webhooksInput),
                 matchedRuleIds: result.evaluation.matchedRuleIds,
-                configPath: external_path_.join(process.cwd(), '.mergewire.yml'),
+                configPath: external_path_.join(process.cwd(), ".mergewire.yml"),
                 evaluation: result.evaluation,
                 repository: githubContext.repo,
                 prNumber: githubContext.pullRequest.number,
@@ -37550,9 +37606,9 @@ async function run() {
             });
         }
         // Set outputs
-        core.setOutput('request-id', requestId);
-        core.setOutput('routing-status', result.status);
-        core.setOutput('summary-json', JSON.stringify({
+        core.setOutput("request-id", requestId);
+        core.setOutput("routing-status", result.status);
+        core.setOutput("summary-json", JSON.stringify({
             requestId,
             status: result.status,
             durationMs: Date.now() - startTime,
@@ -37562,21 +37618,21 @@ async function run() {
         }));
         // Handle result
         switch (result.status) {
-            case 'accepted':
+            case "accepted":
                 core.info(`✅ Payload accepted by API`);
                 break;
-            case 'duplicate':
+            case "duplicate":
                 core.info(`⚠️ Duplicate delivery detected (already processed)`);
                 break;
-            case 'skipped':
-                core.warning(`⚠️ Payload skipped by API: ${result.message || 'No changes to route'}`);
+            case "skipped":
+                core.warning(`⚠️ Payload skipped by API: ${result.message || "No changes to route"}`);
                 break;
-            case 'failed':
+            case "failed":
                 if (failOnApiError) {
-                    core.setFailed(`❌ API error: ${result.message || 'Unknown error'}`);
+                    core.setFailed(`❌ API error: ${result.message || "Unknown error"}`);
                 }
                 else {
-                    core.warning(`⚠️ API error (non-fatal): ${result.message || 'Unknown error'}`);
+                    core.warning(`⚠️ API error (non-fatal): ${result.message || "Unknown error"}`);
                 }
                 break;
         }
@@ -37587,12 +37643,12 @@ async function run() {
         core.setFailed(`❌ Action failed: ${message}`);
         // Set minimal outputs on failure
         if (requestId) {
-            core.setOutput('request-id', requestId);
+            core.setOutput("request-id", requestId);
         }
-        core.setOutput('routing-status', 'failed');
-        core.setOutput('summary-json', JSON.stringify({
+        core.setOutput("routing-status", "failed");
+        core.setOutput("summary-json", JSON.stringify({
             requestId,
-            status: 'failed',
+            status: "failed",
             error: message,
             durationMs: Date.now() - startTime,
         }));
@@ -37602,7 +37658,7 @@ async function run() {
  * Write evaluation results back to GitHub (PR comment + reviewer requests + labels)
  */
 async function writeBackToGitHub(options) {
-    const { token, owner, repo, pullNumber, evaluation, postComment, requestReviewers, applyLabels } = options;
+    const { token, owner, repo, pullNumber, evaluation, postComment, requestReviewers, applyLabels, } = options;
     const octokit = github.getOctokit(token);
     // Post or update PR comment
     if (postComment) {
@@ -37623,7 +37679,7 @@ async function writeBackToGitHub(options) {
                     comment_id: existingComment.id,
                     body: commentBody,
                 });
-                core.info('  Updated existing PR comment');
+                core.info("  Updated existing PR comment");
             }
             else {
                 // Create new comment
@@ -37633,7 +37689,7 @@ async function writeBackToGitHub(options) {
                     issue_number: pullNumber,
                     body: commentBody,
                 });
-                core.info('  Posted new PR comment');
+                core.info("  Posted new PR comment");
             }
         }
         catch (error) {
@@ -37652,14 +37708,14 @@ async function writeBackToGitHub(options) {
                     reviewers: reviewers.users.length > 0 ? reviewers.users : undefined,
                     team_reviewers: reviewers.teams.length > 0 ? reviewers.teams : undefined,
                 });
-                core.info(`  Requested reviewers: ${[...reviewers.users, ...reviewers.teams.map((t) => `team:${t}`)].join(', ')}`);
+                core.info(`  Requested reviewers: ${[...reviewers.users, ...reviewers.teams.map((t) => `team:${t}`)].join(", ")}`);
             }
             catch (error) {
                 core.warning(`Failed to request reviewers: ${error instanceof Error ? error.message : String(error)}`);
             }
         }
         else {
-            core.info('  No reviewers to request');
+            core.info("  No reviewers to request");
         }
     }
     // Apply severity label
@@ -37678,9 +37734,21 @@ async function writeBackToGitHub(options) {
  */
 async function applySeverityLabel(octokit, owner, repo, issue_number, severity) {
     const labelConfig = {
-        low: { name: 'mergewire: low-risk', color: '00FF00', description: 'Low risk Terraform changes' },
-        medium: { name: 'mergewire: medium-risk', color: 'FFFF00', description: 'Medium risk Terraform changes' },
-        high: { name: 'mergewire: critical', color: 'FF0000', description: 'Critical Terraform changes requiring immediate attention' },
+        low: {
+            name: "mergewire: low-risk",
+            color: "00FF00",
+            description: "Low risk Terraform changes",
+        },
+        medium: {
+            name: "mergewire: medium-risk",
+            color: "FFFF00",
+            description: "Medium risk Terraform changes",
+        },
+        high: {
+            name: "mergewire: critical",
+            color: "FF0000",
+            description: "Critical Terraform changes requiring immediate attention",
+        },
     };
     const { name, color, description } = labelConfig[severity];
     // Check if label exists, if not create it
@@ -37688,9 +37756,18 @@ async function applySeverityLabel(octokit, owner, repo, issue_number, severity) 
         await octokit.rest.issues.getLabel({ owner, repo, name });
     }
     catch (error) {
-        if (typeof error === 'object' && error !== null && 'status' in error && error.status === 404) {
+        if (typeof error === "object" &&
+            error !== null &&
+            "status" in error &&
+            error.status === 404) {
             core.info(`  Label '${name}' not found. Creating it...`);
-            await octokit.rest.issues.createLabel({ owner, repo, name, color, description });
+            await octokit.rest.issues.createLabel({
+                owner,
+                repo,
+                name,
+                color,
+                description,
+            });
         }
         else {
             throw error;
@@ -37735,59 +37812,57 @@ async function applySeverityLabel(octokit, owner, repo, issue_number, severity) 
  * Build the markdown comment body from evaluation result
  */
 function buildCommentBody(evaluation) {
-    const lines = [
-        COMMENT_MARKER,
-        '## MergeWire Evaluation',
-        '',
-    ];
+    const lines = [COMMENT_MARKER, "## MergeWire Evaluation", ""];
     // Aha Moment Summary
     const routingTo = [
-        ...evaluation.requestedReviewers.teams.map(t => `@${t}`),
-        ...evaluation.requestedReviewers.users.map(u => `@${u}`)
-    ].join(', ');
-    const routingMsg = routingTo ? ` Routing to ${routingTo}.` : '';
-    if (evaluation.severity === 'low') {
-        lines.push('✅ **Low Risk:** Auto-approved. No destructive changes detected.');
+        ...evaluation.requestedReviewers.teams.map((t) => `@${t}`),
+        ...evaluation.requestedReviewers.users.map((u) => `@${u}`),
+    ].join(", ");
+    const routingMsg = routingTo ? ` Routing to ${routingTo}.` : "";
+    if (evaluation.severity === "low") {
+        lines.push("✅ **Low Risk:** Auto-approved. No destructive changes detected.");
     }
-    else if (evaluation.severity === 'high') {
+    else if (evaluation.severity === "high") {
         lines.push(`⚠️ **High Risk:** High impact changes detected.${routingMsg}`);
     }
     else {
         lines.push(`⚠️ **Medium Risk:** Moderate impact changes detected.${routingMsg}`);
     }
-    lines.push('');
+    lines.push("");
     if (evaluation.evidence.length > 0) {
-        lines.push('### Evidence');
-        lines.push('');
-        lines.push('| Rule | Title | Summary | Impacted Resources |');
-        lines.push('|---|---|---|---|');
+        lines.push("### Evidence");
+        lines.push("");
+        lines.push("| Rule | Title | Summary | Impacted Resources |");
+        lines.push("|---|---|---|---|");
         for (const item of evaluation.evidence) {
-            const title = item.title.replace(/\|/g, '&#124;').replace(/\n/g, '<br/>');
-            const summary = item.summary.replace(/\|/g, '&#124;').replace(/\n/g, '<br/>');
+            const title = item.title.replace(/\|/g, "&#124;").replace(/\n/g, "<br/>");
+            const summary = item.summary
+                .replace(/\|/g, "&#124;")
+                .replace(/\n/g, "<br/>");
             const resources = item.resourceAddresses && item.resourceAddresses.length > 0
-                ? item.resourceAddresses.map(r => `\`${r}\``).join('<br/>')
-                : 'None';
+                ? item.resourceAddresses.map((r) => `\`${r}\``).join("<br/>")
+                : "None";
             lines.push(`| \`${item.ruleId}\` | ${title} | ${summary} | ${resources} |`);
         }
-        lines.push('');
+        lines.push("");
     }
     const reviewers = evaluation.requestedReviewers;
     if (reviewers.users.length > 0 || reviewers.teams.length > 0) {
-        lines.push('### Requested Reviewers');
-        lines.push('');
-        lines.push('| Type | Reviewer |');
-        lines.push('|---|---|');
+        lines.push("### Requested Reviewers");
+        lines.push("");
+        lines.push("| Type | Reviewer |");
+        lines.push("|---|---|");
         for (const user of reviewers.users) {
             lines.push(`| User | @${user} |`);
         }
         for (const team of reviewers.teams) {
             lines.push(`| Team | @${team} |`);
         }
-        lines.push('');
+        lines.push("");
     }
-    lines.push('---');
-    lines.push('*View detailed evidence on the [MergeWire Dashboard](https://mergewire.com/dashboard)*');
-    return lines.join('\n');
+    lines.push("---");
+    lines.push("*View detailed evidence on the [MergeWire Dashboard](https://mergewire.com/dashboard)*");
+    return lines.join("\n");
 }
 // Run the action
 void run();

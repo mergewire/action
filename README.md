@@ -21,9 +21,9 @@ name: Terraform Review
 on:
   pull_request:
     paths:
-      - '**.tf'
-      - '**.tfvars'
-      - '.mergewire.yml'
+      - "**.tf"
+      - "**.tfvars"
+      - ".mergewire.yml"
 
 jobs:
   terraform-review:
@@ -33,7 +33,7 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: '1.7.0'
+          terraform_version: "1.7.0"
 
       - uses: mergewire/action@v1
         with:

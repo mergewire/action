@@ -1,3 +1,19 @@
-import rootConfig from '../../eslint.config.js'
+import js from "@eslint/js";
+import globals from "globals";
+import tseslint from "typescript-eslint";
 
-export default rootConfig
+export default tseslint.config(
+  {
+    ignores: ["dist/**", "dist-packed/**", "node_modules/**"],
+  },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+);

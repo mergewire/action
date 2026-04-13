@@ -19,7 +19,7 @@ jobs:
         uses: mergewire-app/action@v1
         with:
           api-key: ${{ secrets.MERGEWIRE_API_KEY }}
-          terraform-root: './infra'
+          terraform-root: "./infra"
           request-reviewers: true
           post-comment: true
           github-token: ${{ secrets.GITHUB_TOKEN }}

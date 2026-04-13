@@ -8,38 +8,38 @@
  * All sending is best-effort: failures log warnings but never fail the Action.
  */
 
-import * as core from '@actions/core'
-import { readFile } from 'fs/promises'
-import yaml from 'js-yaml'
-import type { EvaluationResult } from './core/types.js'
+import * as core from "@actions/core";
+import { readFile } from "fs/promises";
+import yaml from "js-yaml";
+import type { EvaluationResult } from "./core/types.js";
 
 // ============================================================================
 // Types
 // ============================================================================
 
 interface SlackBlock {
-  type: string
-  text?: { type: string; text: string }
-  fields?: Array<{ type: string; text: string }>
+  type: string;
+  text?: { type: string; text: string };
+  fields?: Array<{ type: string; text: string }>;
 }
 
 interface SlackMessage {
-  text: string
-  blocks: SlackBlock[]
+  text: string;
+  blocks: SlackBlock[];
 }
 
 // Minimal shape we need from .mergewire.yml rules — no full Zod validation here
 // since the API already validated the config. We only need id and notify.slack.
 interface MinimalRule {
-  id: string
+  id: string;
   notify?: {
-    slack?: string
-    slackFinance?: boolean
-  }
+    slack?: string;
+    slackFinance?: boolean;
+  };
 }
 
 interface MinimalConfig {
-  rules?: MinimalRule[]
+  rules?: MinimalRule[];
 }
 
 // ============================================================================
@@ -57,29 +57,31 @@ interface MinimalConfig {
  * Non-HTTPS URLs are rejected.
  */
 export function parseSlackWebhooks(input: string): Map<string, string> {
-  const webhooks = new Map<string, string>()
-  if (!input.trim()) return webhooks
+  const webhooks = new Map<string, string>();
+  if (!input.trim()) return webhooks;
 
-  for (const line of input.split('\n')) {
-    const trimmed = line.trim()
-    if (!trimmed || trimmed.startsWith('#')) continue
+  for (const line of input.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
 
-    const eqIndex = trimmed.indexOf('=')
-    if (eqIndex < 1) continue
+    const eqIndex = trimmed.indexOf("=");
+    if (eqIndex < 1) continue;
 
-    const name = trimmed.slice(0, eqIndex).trim()
-    const url = trimmed.slice(eqIndex + 1).trim()
+    const name = trimmed.slice(0, eqIndex).trim();
+    const url = trimmed.slice(eqIndex + 1).trim();
 
-    if (!name) continue
-    if (!url.startsWith('https://')) {
-      core.warning(`slack-webhooks: skipping "${name}" — URL must start with https://`)
-      continue
+    if (!name) continue;
+    if (!url.startsWith("https://")) {
+      core.warning(
+        `slack-webhooks: skipping "${name}" — URL must start with https://`,
+      );
+      continue;
     }
 
-    webhooks.set(name, url)
+    webhooks.set(name, url);
   }
 
-  return webhooks
+  return webhooks;
 }
 
 // ============================================================================
@@ -92,47 +94,49 @@ export function parseSlackWebhooks(input: string): Map<string, string> {
  */
 export async function resolveSlackChannels(
   configPath: string,
-  matchedRuleIds: string[]
+  matchedRuleIds: string[],
 ): Promise<string[]> {
-  if (matchedRuleIds.length === 0) return []
+  if (matchedRuleIds.length === 0) return [];
 
-  let raw: string
+  let raw: string;
   try {
-    raw = await readFile(configPath, 'utf-8')
+    raw = await readFile(configPath, "utf-8");
   } catch {
     // No config file present — nothing to resolve
-    return []
+    return [];
   }
 
-  let parsed: unknown
+  let parsed: unknown;
   try {
-    parsed = yaml.load(raw)
+    parsed = yaml.load(raw);
   } catch {
-    core.warning('slack-sender: could not parse .mergewire.yml, skipping Slack channel resolution')
-    return []
+    core.warning(
+      "slack-sender: could not parse .mergewire.yml, skipping Slack channel resolution",
+    );
+    return [];
   }
 
-  if (!parsed || typeof parsed !== 'object') return []
+  if (!parsed || typeof parsed !== "object") return [];
 
-  const config = parsed as MinimalConfig
-  if (!Array.isArray(config.rules)) return []
+  const config = parsed as MinimalConfig;
+  if (!Array.isArray(config.rules)) return [];
 
-  const matchedIdSet = new Set(matchedRuleIds)
-  const channels = new Set<string>()
+  const matchedIdSet = new Set(matchedRuleIds);
+  const channels = new Set<string>();
 
   for (const rule of config.rules) {
     if (
       rule &&
-      typeof rule === 'object' &&
-      typeof rule.id === 'string' &&
+      typeof rule === "object" &&
+      typeof rule.id === "string" &&
       matchedIdSet.has(rule.id) &&
       rule.notify?.slack
     ) {
-      channels.add(rule.notify.slack)
+      channels.add(rule.notify.slack);
     }
   }
 
-  return [...channels]
+  return [...channels];
 }
 
 // ============================================================================
@@ -140,85 +144,97 @@ export async function resolveSlackChannels(
 // ============================================================================
 
 const SEVERITY_EMOJI: Record<string, string> = {
-  low: '🔵',
-  medium: '🟡',
-  high: '🔴',
-}
+  low: "🔵",
+  medium: "🟡",
+  high: "🔴",
+};
 
 const SEVERITY_LABEL: Record<string, string> = {
-  low: 'Low',
-  medium: 'Medium',
-  high: 'High',
-}
+  low: "Low",
+  medium: "Medium",
+  high: "High",
+};
 
 function buildSlackMessage(options: {
-  repository: { owner: string; name: string }
-  prNumber: number
-  prUrl: string
-  severity: string
-  evaluation: EvaluationResult
+  repository: { owner: string; name: string };
+  prNumber: number;
+  prUrl: string;
+  severity: string;
+  evaluation: EvaluationResult;
 }): SlackMessage {
-  const { owner, name } = options.repository
-  const emoji = SEVERITY_EMOJI[options.severity] ?? '⚪'
-  const label = SEVERITY_LABEL[options.severity] ?? options.severity.toUpperCase()
-  const severityText = `${emoji} *${label} Severity*`
-  const repoRef = `*${owner}/${name}*`
-  const prRef = `<${options.prUrl}|#${options.prNumber}>`
+  const { owner, name } = options.repository;
+  const emoji = SEVERITY_EMOJI[options.severity] ?? "⚪";
+  const label =
+    SEVERITY_LABEL[options.severity] ?? options.severity.toUpperCase();
+  const severityText = `${emoji} *${label} Severity*`;
+  const repoRef = `*${owner}/${name}*`;
+  const prRef = `<${options.prUrl}|#${options.prNumber}>`;
 
   // Build evidence summary (up to 3 items)
-  const evidence = options.evaluation.evidence ?? []
+  const evidence = options.evaluation.evidence ?? [];
   const evidenceLines = evidence.slice(0, 3).map((item) => {
     const summary =
-      item.summary && item.summary.length > 100 ? item.summary.slice(0, 97) + '...' : item.summary
-    return `• *${item.title}*${summary ? `: ${summary}` : ''}`
-  })
+      item.summary && item.summary.length > 100
+        ? item.summary.slice(0, 97) + "..."
+        : item.summary;
+    return `• *${item.title}*${summary ? `: ${summary}` : ""}`;
+  });
   if (evidence.length > 3) {
-    evidenceLines.push(`_...and ${evidence.length - 3} more_`)
+    evidenceLines.push(`_...and ${evidence.length - 3} more_`);
   }
   const evidenceText =
-    evidenceLines.length > 0 ? evidenceLines.join('\n') : '_No specific evidence provided_'
+    evidenceLines.length > 0
+      ? evidenceLines.join("\n")
+      : "_No specific evidence provided_";
 
   // Build reviewers summary
-  const reviewers = options.evaluation.requestedReviewers
-  const reviewerParts: string[] = []
-  if (reviewers?.users?.length) reviewerParts.push(...reviewers.users.map((u) => `@${u}`))
-  if (reviewers?.teams?.length) reviewerParts.push(...reviewers.teams.map((t) => `@${t}`))
+  const reviewers = options.evaluation.requestedReviewers;
+  const reviewerParts: string[] = [];
+  if (reviewers?.users?.length)
+    reviewerParts.push(...reviewers.users.map((u) => `@${u}`));
+  if (reviewers?.teams?.length)
+    reviewerParts.push(...reviewers.teams.map((t) => `@${t}`));
   const reviewersText =
-    reviewerParts.length > 0 ? reviewerParts.join(', ') : '_No reviewers requested_'
+    reviewerParts.length > 0
+      ? reviewerParts.join(", ")
+      : "_No reviewers requested_";
 
   const blocks: SlackBlock[] = [
     {
-      type: 'section',
+      type: "section",
       text: {
-        type: 'mrkdwn',
+        type: "mrkdwn",
         text: `${severityText} — Terraform Review Required`,
       },
     },
     {
-      type: 'section',
+      type: "section",
       fields: [
-        { type: 'mrkdwn', text: `*Repository:*\n${repoRef}` },
-        { type: 'mrkdwn', text: `*Pull Request:*\n${prRef}` },
+        { type: "mrkdwn", text: `*Repository:*\n${repoRef}` },
+        { type: "mrkdwn", text: `*Pull Request:*\n${prRef}` },
       ],
     },
     {
-      type: 'section',
-      text: { type: 'mrkdwn', text: `*Evidence:*\n${evidenceText}` },
+      type: "section",
+      text: { type: "mrkdwn", text: `*Evidence:*\n${evidenceText}` },
     },
     {
-      type: 'section',
-      text: { type: 'mrkdwn', text: `*Requested Reviewers:*\n${reviewersText}` },
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*Requested Reviewers:*\n${reviewersText}`,
+      },
     },
     {
-      type: 'section',
-      text: { type: 'mrkdwn', text: `<${options.prUrl}|View Pull Request>` },
+      type: "section",
+      text: { type: "mrkdwn", text: `<${options.prUrl}|View Pull Request>` },
     },
-  ]
+  ];
 
   return {
     text: `${emoji} ${label} severity alert: ${owner}/${name}#${options.prNumber}`,
     blocks,
-  }
+  };
 }
 
 // ============================================================================
@@ -227,29 +243,38 @@ function buildSlackMessage(options: {
 
 async function sendWebhook(
   webhookUrl: string,
-  payload: SlackMessage
+  payload: SlackMessage,
 ): Promise<{ success: true } | { success: false; error: string }> {
   try {
     const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-    })
+    });
 
     if (!response.ok) {
-      const body = await response.text().catch(() => 'unknown')
-      return { success: false, error: `Slack webhook returned ${response.status}: ${body}` }
+      const body = await response.text().catch(() => "unknown");
+      return {
+        success: false,
+        error: `Slack webhook returned ${response.status}: ${body}`,
+      };
     }
 
-    const body = await response.text().catch(() => '')
-    if (body !== 'ok') {
-      return { success: false, error: `Slack webhook returned unexpected response: ${body}` }
+    const body = await response.text().catch(() => "");
+    if (body !== "ok") {
+      return {
+        success: false,
+        error: `Slack webhook returned unexpected response: ${body}`,
+      };
     }
 
-    return { success: true }
+    return { success: true };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return { success: false, error: `Failed to send Slack webhook: ${message}` }
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return {
+      success: false,
+      error: `Failed to send Slack webhook: ${message}`,
+    };
   }
 }
 
@@ -265,13 +290,13 @@ async function sendWebhook(
  * Block Kit messages. All operations are best-effort.
  */
 export async function sendRuleSlackNotifications(options: {
-  webhookMap: Map<string, string>
-  matchedRuleIds: string[]
-  configPath: string
-  evaluation: EvaluationResult
-  repository: { owner: string; name: string }
-  prNumber: number
-  githubServerUrl: string
+  webhookMap: Map<string, string>;
+  matchedRuleIds: string[];
+  configPath: string;
+  evaluation: EvaluationResult;
+  repository: { owner: string; name: string };
+  prNumber: number;
+  githubServerUrl: string;
 }): Promise<void> {
   const {
     webhookMap,
@@ -281,44 +306,48 @@ export async function sendRuleSlackNotifications(options: {
     repository,
     prNumber,
     githubServerUrl,
-  } = options
+  } = options;
 
-  if (webhookMap.size === 0) return
+  if (webhookMap.size === 0) return;
   if (matchedRuleIds.length === 0) {
-    core.info('  No matched rules — skipping Slack notifications')
-    return
+    core.info("  No matched rules — skipping Slack notifications");
+    return;
   }
 
-  const channels = await resolveSlackChannels(configPath, matchedRuleIds)
+  const channels = await resolveSlackChannels(configPath, matchedRuleIds);
 
   if (channels.length === 0) {
-    core.info('  No rules with notify.slack found among matched rules — skipping')
-    return
+    core.info(
+      "  No rules with notify.slack found among matched rules — skipping",
+    );
+    return;
   }
 
-  const prUrl = `${githubServerUrl}/${repository.owner}/${repository.name}/pull/${prNumber}`
+  const prUrl = `${githubServerUrl}/${repository.owner}/${repository.name}/pull/${prNumber}`;
   const message = buildSlackMessage({
     repository,
     prNumber,
     prUrl,
     severity: evaluation.severity,
     evaluation,
-  })
+  });
 
   for (const channel of channels) {
-    const webhookUrl = webhookMap.get(channel)
+    const webhookUrl = webhookMap.get(channel);
     if (!webhookUrl) {
       core.warning(
-        `  slack-webhooks: no webhook URL configured for channel "${channel}" — skipping`
-      )
-      continue
+        `  slack-webhooks: no webhook URL configured for channel "${channel}" — skipping`,
+      );
+      continue;
     }
 
-    const result = await sendWebhook(webhookUrl, message)
+    const result = await sendWebhook(webhookUrl, message);
     if (result.success) {
-      core.info(`  Slack notification sent to channel "${channel}"`)
+      core.info(`  Slack notification sent to channel "${channel}"`);
     } else {
-      core.warning(`  Failed to send Slack to channel "${channel}": ${result.error}`)
+      core.warning(
+        `  Failed to send Slack to channel "${channel}": ${result.error}`,
+      );
     }
   }
 }

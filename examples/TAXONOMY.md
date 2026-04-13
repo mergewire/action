@@ -27,9 +27,9 @@ resourceTypes:
   # ... and 20 more IAM resources
 
 # ✅ After: Simple and future-proof
-categories: ['iam']
+categories: ["iam"]
 # OR
-services: ['aws:iam']
+services: ["aws:iam"]
 ```
 
 ## Categories
@@ -52,21 +52,21 @@ Categories provide cross-cloud abstractions. A single category can match resourc
 # Match any IAM resource across all clouds
 - id: cross-cloud-iam
   when:
-    categories: ['iam']
+    categories: ["iam"]
   severity: high
 
 # Match multiple categories (OR logic)
 - id: critical-categories
   when:
-    categories: ['iam', 'database', 'security']
+    categories: ["iam", "database", "security"]
   severity: critical
 
 # Combine with other conditions
 - id: prod-database-deletions
   when:
-    categories: ['database']
-    actions: ['delete']
-    filePaths: ['environments/prod/**/*']
+    categories: ["database"]
+    actions: ["delete"]
+    filePaths: ["environments/prod/**/*"]
   severity: critical
 ```
 
@@ -129,19 +129,19 @@ Services identify resources by their cloud provider service. Use the format `pro
 # Match specific provider service
 - id: aws-lambda-changes
   when:
-    services: ['aws:lambda']
+    services: ["aws:lambda"]
   severity: medium
 
 # Match service across all providers (cross-cloud)
 - id: any-kubernetes
   when:
-    services: ['eks', 'container', 'containerservice']
+    services: ["eks", "container", "containerservice"]
   severity: high
 
 # Multiple services (OR logic)
 - id: compute-services
   when:
-    services: ['aws:ec2', 'aws:eks', 'gcp:compute']
+    services: ["aws:ec2", "aws:eks", "gcp:compute"]
   severity: medium
 ```
 
@@ -156,7 +156,7 @@ Set fixed thresholds for change volumes:
 ```yaml
 - id: delete-limit
   when:
-    actions: ['delete']
+    actions: ["delete"]
     changeCount:
       deleteGte: 5 # Trigger if 5+ deletes
       totalGte: 10 # OR if 10+ total changes
@@ -179,7 +179,7 @@ Set proportional thresholds (requires `totalStateResources` in payload):
 ```yaml
 - id: proportional-blast-radius
   when:
-    categories: ['database']
+    categories: ["database"]
     changePercentage:
       totalGte: 50 # Trigger if >50% of databases change
   severity: critical
@@ -201,9 +201,9 @@ Volume constraints are evaluated AFTER filtering, enabling precise targeting:
 # Only triggers if 3+ RDS databases are being deleted in production
 - id: rds-delete-blast-radius
   when:
-    services: ['aws:rds']
-    actions: ['delete']
-    filePaths: ['environments/prod/**/*']
+    services: ["aws:rds"]
+    actions: ["delete"]
+    filePaths: ["environments/prod/**/*"]
     changeCount:
       deleteGte: 3
   severity: critical
@@ -273,8 +273,8 @@ rules:
   - id: database-deletion-limit
     description: Cannot delete 2+ databases at once
     when:
-      categories: ['database']
-      actions: ['delete']
+      categories: ["database"]
+      actions: ["delete"]
       changeCount:
         deleteGte: 2
     severity: critical
@@ -286,8 +286,8 @@ rules:
   - id: database-cost-and-volume
     description: Multiple expensive database additions
     when:
-      categories: ['database']
-      actions: ['create']
+      categories: ["database"]
+      actions: ["create"]
       changeCount:
         createGte: 3
     severity: high
@@ -301,8 +301,8 @@ rules:
   - id: lambda-deployment-limit
     description: Mass Lambda deployments need review
     when:
-      services: ['aws:lambda']
-      actions: ['create', 'update']
+      services: ["aws:lambda"]
+      actions: ["create", "update"]
       changeCount:
         totalGte: 10
     severity: medium
@@ -313,7 +313,7 @@ rules:
   - id: eks-critical-changes
     description: EKS cluster node group or addon changes
     when:
-      services: ['aws:eks']
+      services: ["aws:eks"]
       resourceTypes:
         - aws_eks_node_group
         - aws_eks_addon

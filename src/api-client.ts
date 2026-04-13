@@ -4,22 +4,22 @@
  * Handles HMAC signing and API communication with the backend.
  */
 
-import * as core from '@actions/core'
-import * as crypto from 'crypto'
-import type { RoutingPayload, EvaluationResult } from './core/types.js'
-import { stableSerialize } from './core/helpers.js'
+import * as core from "@actions/core";
+import * as crypto from "crypto";
+import type { RoutingPayload, EvaluationResult } from "./core/types.js";
+import { stableSerialize } from "./core/helpers.js";
 
 export interface SendResult {
-  status: 'accepted' | 'duplicate' | 'skipped' | 'failed'
-  message?: string
-  evaluation?: EvaluationResult
+  status: "accepted" | "duplicate" | "skipped" | "failed";
+  message?: string;
+  evaluation?: EvaluationResult;
 }
 
 interface ApiResponse {
-  status: 'accepted' | 'duplicate' | 'skipped' | 'error'
-  message?: string
-  requestId?: string
-  evaluation?: EvaluationResult
+  status: "accepted" | "duplicate" | "skipped" | "error";
+  message?: string;
+  requestId?: string;
+  evaluation?: EvaluationResult;
 }
 
 /**
@@ -28,71 +28,83 @@ interface ApiResponse {
 export async function sendPayload(
   apiUrl: string,
   apiKey: string,
-  payload: RoutingPayload
+  payload: RoutingPayload,
 ): Promise<SendResult> {
-  const url = `${apiUrl.replace(/\/$/, '')}/ingest`
-  const body = stableSerialize(payload)
+  const url = `${apiUrl.replace(/\/$/, "")}/ingest`;
+  const body = stableSerialize(payload);
 
   // Keep sending the legacy signature header for backward compatibility while
   // the backend transitions from global HMAC secrets to workspace API keys.
-  const signature = signPayload(body, apiKey)
+  const signature = signPayload(body, apiKey);
 
-  core.debug(`Sending payload to ${url}`)
-  core.debug(`Request ID: ${payload.requestId}`)
-  core.debug(`Signature: ${signature.slice(0, 16)}...`)
+  core.debug(`Sending payload to ${url}`);
+  core.debug(`Request ID: ${payload.requestId}`);
+  core.debug(`Signature: ${signature.slice(0, 16)}...`);
 
   const response = await fetch(url, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'X-API-Key': apiKey,
-      'X-Signature': signature,
-      'X-Request-Id': payload.requestId,
-      'X-Source': 'github-actions',
+      "Content-Type": "application/json",
+      "X-API-Key": apiKey,
+      "X-Signature": signature,
+      "X-Request-Id": payload.requestId,
+      "X-Source": "github-actions",
     },
     body,
-  })
+  });
 
   // Handle HTTP errors
   if (!response.ok) {
-    const errorText = await response.text().catch(() => 'Unknown error')
+    const errorText = await response.text().catch(() => "Unknown error");
 
     // Check for duplicate (409 Conflict)
     if (response.status === 409) {
       return {
-        status: 'duplicate',
-        message: 'Request already processed',
-      }
+        status: "duplicate",
+        message: "Request already processed",
+      };
     }
 
     return {
-      status: 'failed',
+      status: "failed",
       message: `HTTP ${response.status}: ${errorText.slice(0, 200)}`,
-    }
+    };
   }
 
   // Parse response
-  let data: ApiResponse
+  let data: ApiResponse;
   try {
-    data = (await response.json()) as ApiResponse
+    data = (await response.json()) as ApiResponse;
   } catch {
     // Non-JSON success response is acceptable
-    return { status: 'accepted' }
+    return { status: "accepted" };
   }
 
   // Map API response status to our result status
   switch (data.status) {
-    case 'accepted':
-      return { status: 'accepted', message: data.message, evaluation: data.evaluation }
-    case 'duplicate':
-      return { status: 'duplicate', message: data.message, evaluation: data.evaluation }
-    case 'skipped':
-      return { status: 'skipped', message: data.message, evaluation: data.evaluation }
-    case 'error':
-      return { status: 'failed', message: data.message }
+    case "accepted":
+      return {
+        status: "accepted",
+        message: data.message,
+        evaluation: data.evaluation,
+      };
+    case "duplicate":
+      return {
+        status: "duplicate",
+        message: data.message,
+        evaluation: data.evaluation,
+      };
+    case "skipped":
+      return {
+        status: "skipped",
+        message: data.message,
+        evaluation: data.evaluation,
+      };
+    case "error":
+      return { status: "failed", message: data.message };
     default:
       // Unknown status, but HTTP was OK
-      return { status: 'accepted', evaluation: data.evaluation }
+      return { status: "accepted", evaluation: data.evaluation };
   }
 }
 
@@ -100,21 +112,30 @@ export async function sendPayload(
  * Sign a payload using HMAC-SHA256
  */
 export function signPayload(payload: string, secret: string): string {
-  const hmac = crypto.createHmac('sha256', secret)
-  hmac.update(payload, 'utf8')
-  return `sha256=${hmac.digest('hex')}`
+  const hmac = crypto.createHmac("sha256", secret);
+  hmac.update(payload, "utf8");
+  return `sha256=${hmac.digest("hex")}`;
 }
 
 /**
  * Verify a payload signature (for testing purposes)
  */
-export function verifySignature(payload: string, secret: string, signature: string): boolean {
-  const expected = signPayload(payload, secret)
+export function verifySignature(
+  payload: string,
+  secret: string,
+  signature: string,
+): boolean {
+  const expected = signPayload(payload, secret);
   try {
-    const normalized = signature.startsWith('sha256=') ? signature : `sha256=${signature}`
-    return crypto.timingSafeEqual(Buffer.from(normalized), Buffer.from(expected))
+    const normalized = signature.startsWith("sha256=")
+      ? signature
+      : `sha256=${signature}`;
+    return crypto.timingSafeEqual(
+      Buffer.from(normalized),
+      Buffer.from(expected),
+    );
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -122,5 +143,5 @@ export function verifySignature(payload: string, secret: string, signature: stri
  * Generate a test request ID for idempotency testing
  */
 export function generateRequestId(): string {
-  return crypto.randomUUID()
+  return crypto.randomUUID();
 }

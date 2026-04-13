@@ -45,7 +45,7 @@ Match resources by type, action, location, or module:
 - id: production-destructive
   when:
     actions: [delete, replace]
-    filePaths: ['environments/prod/**/*']
+    filePaths: ["environments/prod/**/*"]
   severity: high
 ```
 
@@ -77,7 +77,7 @@ Match by cloud provider service:
 ```yaml
 - id: aws-iam-changes
   when:
-    services: ['aws:iam'] # Matches aws_iam_role, aws_iam_policy, etc.
+    services: ["aws:iam"] # Matches aws_iam_role, aws_iam_policy, etc.
   severity: high
 ```
 
@@ -88,7 +88,7 @@ Match by high-level category across all clouds:
 ```yaml
 - id: database-changes
   when:
-    categories: ['database'] # Matches RDS, Cloud SQL, CosmosDB, etc.
+    categories: ["database"] # Matches RDS, Cloud SQL, CosmosDB, etc.
   severity: medium
 ```
 
@@ -118,7 +118,7 @@ rules:
   - id: prod-delete-limit
     when:
       actions: [delete]
-      filePaths: ['environments/prod/**/*']
+      filePaths: ["environments/prod/**/*"]
       changeCount:
         deleteGte: 3
     severity: critical
@@ -126,7 +126,7 @@ rules:
   # Require review for high blast radius
   - id: prod-blast-radius
     when:
-      filePaths: ['environments/prod/**/*']
+      filePaths: ["environments/prod/**/*"]
       changePercentage:
         totalGte: 30
     severity: high
@@ -141,7 +141,7 @@ rules:
   # All IAM changes need security review
   - id: iam-review
     when:
-      categories: ['iam']
+      categories: ["iam"]
     severity: high
     reviewers:
       teams: [security-team]
@@ -149,7 +149,7 @@ rules:
   # IAM deletions need security lead approval
   - id: iam-deletions
     when:
-      categories: ['iam']
+      categories: ["iam"]
       actions: [delete]
     severity: critical
     reviewers:
@@ -163,7 +163,7 @@ rules:
   # Multiple database deletions
   - id: db-mass-deletion
     when:
-      categories: ['database']
+      categories: ["database"]
       actions: [delete]
       changeCount:
         deleteGte: 2
@@ -174,7 +174,7 @@ rules:
   # Expensive database additions
   - id: db-cost-alert
     when:
-      categories: ['database']
+      categories: ["database"]
       actions: [create]
       cost:
         monthlyDeltaUsdGte: 1000
@@ -188,7 +188,7 @@ rules:
   # Consistent compute review across clouds
   - id: compute-changes
     when:
-      categories: ['compute']
+      categories: ["compute"]
       changeCount:
         totalGte: 5
     severity: medium
@@ -198,7 +198,7 @@ rules:
   # Network changes anywhere
   - id: network-changes
     when:
-      categories: ['network']
+      categories: ["network"]
     severity: high
     reviewers:
       teams: [network-team, security-team]
@@ -221,16 +221,16 @@ rules:
     description: Human-readable description
     when:
       # Resource filtering (all optional, AND logic)
-      resourceTypes: ['aws_instance', 'aws_db_*']
-      services: ['aws:ec2', 'aws:rds']
-      categories: ['compute', 'database']
-      moduleAddress: 'module.database*'
+      resourceTypes: ["aws_instance", "aws_db_*"]
+      services: ["aws:ec2", "aws:rds"]
+      categories: ["compute", "database"]
+      moduleAddress: "module.database*"
 
       # Action filtering
       actions: [create, update, delete, replace, import]
 
       # Location filtering
-      filePaths: ['environments/prod/**/*']
+      filePaths: ["environments/prod/**/*"]
 
       # Volume constraints
       changeCount:
@@ -275,8 +275,8 @@ Within a rule, all conditions use **AND logic**:
 
 ```yaml
 when:
-  categories: ['database'] # Must be a database AND
-  actions: ['delete'] # Must be a delete AND
+  categories: ["database"] # Must be a database AND
+  actions: ["delete"] # Must be a delete AND
   changeCount: # Must have 2+ deletes
     deleteGte: 2
 ```
@@ -285,7 +285,7 @@ Multiple values in an array use **OR logic**:
 
 ```yaml
 when:
-  categories: ['iam', 'database'] # IAM OR database
+  categories: ["iam", "database"] # IAM OR database
   actions: [create, update] # Create OR update
 ```
 

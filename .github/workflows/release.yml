@@ -19,8 +19,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: "22"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -38,16 +38,16 @@ jobs:
           if git describe --tags --abbrev=0 2>/dev/null; then
             LAST_TAG=$(git describe --tags --abbrev=0)
             COMMITS=$(git log "${LAST_TAG}..HEAD" --pretty=format:"%s")
+            BUMP="patch"
           else
             COMMITS=$(git log --pretty=format:"%s")
+            BUMP="major"
           fi
 
           if [ -z "$COMMITS" ]; then
             echo "No commits since last tag. Nothing to release."
             exit 1
           fi
-
-          BUMP="patch"
 
           if echo "$COMMITS" | grep -qE "^[a-z]+(\([^)]+\))?!:|BREAKING CHANGE:"; then
             BUMP="major"

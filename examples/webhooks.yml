@@ -4,29 +4,29 @@ version: 1
 
 defaults:
   reviewers:
-    teams: ['security-ops']
+    teams: ["security-ops"]
 
 rules:
   # 1. PagerDuty on database deletions
-  - id: 'database-deletion-alert'
-    description: 'Trigger PagerDuty incident on database deletion.'
+  - id: "database-deletion-alert"
+    description: "Trigger PagerDuty incident on database deletion."
     severity: critical
     notify:
-      webhook: 'pagerduty'
+      webhook: "pagerduty"
     reviewers:
-      teams: ['data-platform']
+      teams: ["data-platform"]
     when:
-      actions: ['delete']
-      categories: ['database']
+      actions: ["delete"]
+      categories: ["database"]
 
   # 2. Jira tickets for broad IAM modifications
-  - id: 'iam-tickets'
-    description: 'Generate an internal Jira ticket whenever IAM policies are modified.'
+  - id: "iam-tickets"
+    description: "Generate an internal Jira ticket whenever IAM policies are modified."
     severity: medium
     notify:
-      webhook: 'jira_automation'
+      webhook: "jira_automation"
     reviewers:
-      teams: ['infrastructure']
+      teams: ["infrastructure"]
     when:
-      actions: ['create', 'update']
-      categories: ['iam']
+      actions: ["create", "update"]
+      categories: ["iam"]

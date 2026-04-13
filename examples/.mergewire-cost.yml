@@ -83,7 +83,7 @@ rules:
         - update
         - replace
       filePaths:
-        - 'environments/prod/**/*'
+        - "environments/prod/**/*"
       resourceTypes:
         - aws_instance
         - google_compute_instance
@@ -97,8 +97,8 @@ rules:
   - id: database-cost-alert
     description: Flag expensive database additions
     when:
-      categories: ['database']
-      actions: ['create', 'replace']
+      categories: ["database"]
+      actions: ["create", "replace"]
       cost:
         monthlyDeltaUsdGte: 500
     severity: high
@@ -107,7 +107,7 @@ rules:
   - id: storage-cost-alert
     description: Flag large storage cost increases
     when:
-      categories: ['storage']
+      categories: ["storage"]
       cost:
         monthlyDeltaUsdGte: 200
     severity: medium
@@ -116,7 +116,7 @@ rules:
   - id: eks-cost-alert
     description: Flag expensive EKS cluster changes
     when:
-      services: ['aws:eks']
+      services: ["aws:eks"]
       cost:
         monthlyDeltaUsdGte: 300
     severity: medium
@@ -131,7 +131,7 @@ rules:
   - id: volume-cost-risk
     description: Many new resources with combined $500+ cost
     when:
-      actions: ['create']
+      actions: ["create"]
       changeCount:
         createGte: 10
       cost:
@@ -152,8 +152,8 @@ rules:
   - id: compute-scaling-cost
     description: Scaling compute with $200+ monthly cost
     when:
-      categories: ['compute']
-      actions: ['create']
+      categories: ["compute"]
+      actions: ["create"]
       changeCount:
         createGte: 5
       cost:
@@ -164,7 +164,7 @@ rules:
   - id: database-volume-cost
     description: Multiple expensive database changes
     when:
-      categories: ['database']
+      categories: ["database"]
       changeCount:
         totalGte: 3
       cost:
@@ -195,9 +195,9 @@ rules:
   - id: finance-alert-prod-db
     description: Notify finance about production database costs
     when:
-      categories: ['database']
+      categories: ["database"]
       filePaths:
-        - 'environments/prod/**/*'
+        - "environments/prod/**/*"
       cost:
         monthlyDeltaUsdGte: 300
     severity: medium
@@ -208,7 +208,7 @@ rules:
   - id: finance-alert-volume
     description: Notify finance about high-volume infrastructure additions
     when:
-      actions: ['create']
+      actions: ["create"]
       changeCount:
         createGte: 20
       cost:
@@ -265,7 +265,7 @@ rules:
   - id: multi-cloud-compute-cost
     description: Expensive compute resources across any cloud
     when:
-      categories: ['compute']
+      categories: ["compute"]
       resourceTypes:
         - aws_instance
         - aws_eks_node_group
@@ -281,7 +281,7 @@ rules:
   - id: multi-cloud-database-cost
     description: Expensive database resources across any cloud
     when:
-      categories: ['database']
+      categories: ["database"]
       services:
         - aws:rds
         - aws:dynamodb

@@ -53,7 +53,7 @@ rules:
         - delete
         - replace
       filePaths:
-        - 'environments/prod/**/*'
+        - "environments/prod/**/*"
     severity: high
     notify:
       slack: alerts
@@ -81,8 +81,8 @@ rules:
     description: Escalate changes to shared Terraform modules
     when:
       filePaths:
-        - 'modules/shared/**/*'
-        - 'modules/network/**/*'
+        - "modules/shared/**/*"
+        - "modules/network/**/*"
     severity: medium
     reviewers:
       teams:
@@ -93,7 +93,7 @@ rules:
   - id: database-module
     description: Add DBA review for database module changes
     when:
-      moduleAddress: 'module.database*'
+      moduleAddress: "module.database*"
       resourceTypes:
         - aws_db_*
         - aws_rds_*
@@ -121,9 +121,9 @@ rules:
   - id: prod-delete-limit
     description: Deleting multiple resources in production requires approval
     when:
-      actions: ['delete']
+      actions: ["delete"]
       filePaths:
-        - 'environments/prod/**/*'
+        - "environments/prod/**/*"
       changeCount:
         deleteGte: 3
     severity: critical
@@ -136,7 +136,7 @@ rules:
   - id: database-blast-radius
     description: High percentage of database changes detected
     when:
-      categories: ['database']
+      categories: ["database"]
       changePercentage:
         totalGte: 50
     severity: high
@@ -149,8 +149,8 @@ rules:
   - id: compute-replacement-limit
     description: Too many compute resources being replaced at once
     when:
-      categories: ['compute']
-      actions: ['replace']
+      categories: ["compute"]
+      actions: ["replace"]
       changeCount:
         replaceGte: 5
     severity: high
@@ -174,7 +174,7 @@ rules:
   - id: aws-iam-service
     description: AWS IAM service changes require security review
     when:
-      services: ['aws:iam']
+      services: ["aws:iam"]
     severity: high
     reviewers:
       teams:
@@ -184,8 +184,8 @@ rules:
   - id: lambda-changes
     description: Lambda function changes
     when:
-      services: ['aws:lambda']
-      actions: ['create', 'update', 'replace']
+      services: ["aws:lambda"]
+      actions: ["create", "update", "replace"]
     severity: medium
     reviewers:
       teams:
@@ -195,7 +195,7 @@ rules:
   - id: eks-changes
     description: EKS cluster changes
     when:
-      services: ['aws:eks']
+      services: ["aws:eks"]
     severity: high
     reviewers:
       teams:
@@ -222,8 +222,8 @@ rules:
   - id: cross-cloud-iam
     description: IAM changes in any cloud provider require security review
     when:
-      categories: ['iam']
-      actions: ['create', 'delete', 'replace']
+      categories: ["iam"]
+      actions: ["create", "delete", "replace"]
     severity: critical
     reviewers:
       teams:
@@ -235,9 +235,9 @@ rules:
   - id: network-changes
     description: Network infrastructure changes
     when:
-      categories: ['network']
+      categories: ["network"]
       filePaths:
-        - 'environments/prod/**/*'
+        - "environments/prod/**/*"
     severity: high
     reviewers:
       teams:
@@ -248,8 +248,8 @@ rules:
   - id: database-deletions
     description: Database deletions require DBA approval
     when:
-      categories: ['database']
-      actions: ['delete', 'replace']
+      categories: ["database"]
+      actions: ["delete", "replace"]
     severity: critical
     reviewers:
       teams:
@@ -261,7 +261,7 @@ rules:
   - id: security-resources
     description: Changes to security-critical resources
     when:
-      categories: ['security']
+      categories: ["security"]
     severity: high
     reviewers:
       teams:
@@ -282,10 +282,10 @@ rules:
   - id: prod-database-deletion-limit
     description: Cannot delete multiple production databases
     when:
-      categories: ['database']
-      actions: ['delete']
+      categories: ["database"]
+      actions: ["delete"]
       filePaths:
-        - 'environments/prod/**/*'
+        - "environments/prod/**/*"
       changeCount:
         deleteGte: 2
     severity: critical
@@ -300,10 +300,10 @@ rules:
   - id: aws-iam-role-deletions
     description: AWS IAM role deletions require security lead approval
     when:
-      resourceTypes: ['aws_iam_role']
-      services: ['aws:iam']
-      categories: ['iam', 'security']
-      actions: ['delete']
+      resourceTypes: ["aws_iam_role"]
+      services: ["aws:iam"]
+      categories: ["iam", "security"]
+      actions: ["delete"]
     severity: critical
     reviewers:
       teams:
@@ -316,7 +316,7 @@ rules:
     description: Large changes to shared modules require architecture review
     when:
       filePaths:
-        - 'modules/shared/**/*'
+        - "modules/shared/**/*"
       changeCount:
         totalGte: 10
     severity: high
@@ -329,7 +329,7 @@ rules:
   - id: compute-blast-radius
     description: High percentage of compute resources being changed
     when:
-      categories: ['compute']
+      categories: ["compute"]
       changePercentage:
         totalGte: 30
     severity: high
@@ -363,8 +363,8 @@ rules:
   - id: security-slack-alert
     description: Security-sensitive changes notify the security channel
     when:
-      categories: ['iam', 'security']
-      actions: ['create', 'delete', 'replace']
+      categories: ["iam", "security"]
+      actions: ["create", "delete", "replace"]
     severity: high
     notify:
       slack: security
@@ -376,9 +376,9 @@ rules:
   - id: infra-review-slack
     description: Infrastructure changes notify the infra-reviews channel
     when:
-      categories: ['network', 'compute']
+      categories: ["network", "compute"]
       filePaths:
-        - 'environments/prod/**/*'
+        - "environments/prod/**/*"
     severity: medium
     notify:
       slack: infra-reviews

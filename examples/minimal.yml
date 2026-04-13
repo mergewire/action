@@ -8,9 +8,9 @@ on:
       - synchronize
       - ready_for_review
     paths:
-      - '**.tf'
-      - '**.tfvars'
-      - '.mergewire.yml'
+      - "**.tf"
+      - "**.tfvars"
+      - ".mergewire.yml"
 
 permissions:
   contents: read
@@ -29,7 +29,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: '1.9.0'
+          terraform_version: "1.9.0"
           terraform_wrapper: false
 
       # Add your cloud provider credentials step here.
