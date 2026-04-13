@@ -31707,6 +31707,7 @@ var external_path_ = __nccwpck_require__(6928);
  * Extracts PR info and repository details from the GitHub Actions environment.
  */
 
+
 const ACTION_VERSION = "0.1.0";
 /**
  * Extract GitHub context from the Actions environment
@@ -31739,11 +31740,20 @@ function extractGitHubContext() {
     const headSha = typeof pr.head === "object" && pr.head !== null
         ? pr.head.sha
         : undefined;
+    const user = typeof pr.user === "object" && pr.user !== null
+        ? pr.user
+        : undefined;
+    const author = user?.login;
+    const authorType = user?.type;
+    if (author) {
+        core.debug(`PR author: ${author} (type: ${authorType ?? "unknown"})`);
+    }
     const pullRequest = {
         number: pr.number,
         baseRef: baseRef ?? "",
         headRef: headRef ?? "",
         headSha: headSha ?? "",
+        ...(author ? { author } : {}),
     };
     // Validate PR info
     if (!pullRequest.number ||
