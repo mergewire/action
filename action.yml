@@ -1,0 +1,74 @@
+name: 'MergeWire'
+description: 'Run Terraform plan and send routing-safe payload to the review router API'
+author: 'MergeWire'
+
+inputs:
+  api-url:
+    description: 'Backend ingest base URL'
+    required: true
+  api-key:
+    description: 'Workspace API key for ingest authentication'
+    required: false
+  api-secret:
+    description: 'Deprecated legacy ingest secret. Prefer api-key.'
+    required: false
+  terraform-root:
+    description: 'Relative path to the Terraform directory'
+    required: true
+  workspace:
+    description: 'Terraform workspace label'
+    required: false
+  environment:
+    description: 'Environment label'
+    required: false
+  fail-on-api-error:
+    description: 'Whether backend delivery failure should fail the job'
+    required: false
+    default: 'false'
+  github-token:
+    description: 'GitHub token for reading PR info and writing back evaluation results (comments, reviewers)'
+    required: false
+    default: ${{ github.token }}
+  github-server-url:
+    description: 'The URL of the GitHub server. Used to construct PR links.'
+    required: false
+    default: ${{ github.server_url }}
+  post-comment:
+    description: 'Whether to post or update a PR comment with evaluation results'
+    required: false
+    default: 'true'
+  request-reviewers:
+    description: 'Whether to request reviewers based on evaluation results'
+    required: false
+    default: 'true'
+  apply-labels:
+    description: 'Whether to automatically apply severity labels to the PR'
+    required: false
+    default: 'true'
+  slack-webhooks:
+    description: 'Named Slack incoming webhook URLs for per-rule channel routing. One "name=https://..." per line. Reference names via notify.slack in .mergewire.yml.'
+    required: false
+    default: ''
+  webhooks:
+    description: 'Named generic webhook URLs for per-rule webhook routing. One "name=https://..." per line. Reference names via notify.webhook in .mergewire.yml.'
+    required: false
+    default: ''
+  webhook-secret:
+    description: 'Cryptographic secret used to sign outbound webhooks via HMAC-SHA256 (x-mergewire-signature header).'
+    required: false
+
+outputs:
+  request-id:
+    description: 'Correlation ID for backend ingest'
+  routing-status:
+    description: "Status of the routing request: 'accepted', 'duplicate', 'skipped', or 'failed'"
+  summary-json:
+    description: 'Compact JSON summary for debugging'
+
+runs:
+  using: 'node24'
+  main: 'dist-packed/index.js'
+
+branding:
+  icon: 'shield'
+  color: 'blue'

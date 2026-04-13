@@ -1,0 +1,58 @@
+name: MergeWire
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+    paths:
+      - '**.tf'
+      - '**.tfvars'
+      - '.mergewire.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  terraform-review:
+    name: Terraform Plan & Review
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.draft }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.9.0'
+          terraform_wrapper: false
+
+      # Configure your cloud provider credentials here.
+      # See aws-oidc.yml for an AWS OIDC example.
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: MergeWire
+        uses: mergewire/action@v1
+        id: mergewire
+        with:
+          api-url: ${{ vars.MERGEWIRE_API_URL }}
+          api-key: ${{ secrets.MERGEWIRE_API_KEY }}
+          terraform-root: ./infrastructure
+          workspace: production
+          environment: prod
+          fail-on-api-error: false
+
+      - name: Log Results
+        run: |
+          echo "Request ID: ${{ steps.mergewire.outputs.request-id }}"
+          echo "Status: ${{ steps.mergewire.outputs.routing-status }}"
+          echo "Summary: ${{ steps.mergewire.outputs.summary-json }}"

@@ -1,0 +1,32 @@
+# Example .mergewire.yml mapping matched rules to Webhook deliveries
+# For the corresponding GitHub Action YAML, see webhooks-workflow.yml
+version: 1
+
+defaults:
+  reviewers:
+    teams: ['security-ops']
+
+rules:
+  # 1. PagerDuty on database deletions
+  - id: 'database-deletion-alert'
+    description: 'Trigger PagerDuty incident on database deletion.'
+    severity: critical
+    notify:
+      webhook: 'pagerduty'
+    reviewers:
+      teams: ['data-platform']
+    when:
+      actions: ['delete']
+      categories: ['database']
+
+  # 2. Jira tickets for broad IAM modifications
+  - id: 'iam-tickets'
+    description: 'Generate an internal Jira ticket whenever IAM policies are modified.'
+    severity: medium
+    notify:
+      webhook: 'jira_automation'
+    reviewers:
+      teams: ['infrastructure']
+    when:
+      actions: ['create', 'update']
+      categories: ['iam']

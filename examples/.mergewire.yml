@@ -1,0 +1,387 @@
+# ============================================================================
+# MergeWire Rules Configuration
+# ============================================================================
+# This file defines routing rules for Terraform PR review assignments.
+# Rules are evaluated in order, and severity escalates based on matches.
+#
+# Documentation: https://docs.mergewire.app/rules
+# ============================================================================
+
+version: 1
+
+defaults:
+  reviewers:
+    teams:
+      - platform-team
+    users: []
+
+# ============================================================================
+# RULE TYPES OVERVIEW
+# ============================================================================
+#
+# 1. BASIC RULES (actions, resourceTypes, filePaths, moduleAddress)
+#    Match resources based on what changed, where, and how.
+#
+# 2. VOLUME RULES (changeCount, changePercentage)
+#    Limit blast radius by counting changes or calculating percentages.
+#
+# 3. SERVICE RULES (services)
+#    Match all resources belonging to a cloud provider service.
+#    Format: "provider:service" (e.g., "aws:iam") or just "service" (e.g., "iam")
+#
+# 4. CATEGORY RULES (categories)
+#    Match resources by high-level category across cloud providers.
+#    Categories: iam, network, compute, storage, database, security, monitoring
+#
+# 5. COST RULES (cost)
+#    See .mergewire-cost.yml for cost-based rule examples.
+#
+# All conditions in a rule are ANDed together (intersection).
+# ============================================================================
+
+rules:
+  # ==========================================================================
+  # BASIC RULES
+  # ==========================================================================
+
+  # Require SRE review for destructive production changes
+  # notify.slack sends to the "alerts" channel defined in slack-webhooks action input
+  - id: production-destructive
+    description: Require SRE review for destructive production changes
+    when:
+      actions:
+        - delete
+        - replace
+      filePaths:
+        - 'environments/prod/**/*'
+    severity: high
+    notify:
+      slack: alerts
+    reviewers:
+      teams:
+        - sre-team
+      users:
+        - sre-lead
+
+  # Route IAM and KMS changes to security reviewers using resourceTypes
+  - id: identity-and-security
+    description: Route IAM and KMS changes to security reviewers
+    when:
+      resourceTypes:
+        - aws_iam_*
+        - aws_kms_*
+    severity: high
+    reviewers:
+      teams:
+        - security-team
+      users: []
+
+  # Escalate changes to shared Terraform modules
+  - id: shared-modules
+    description: Escalate changes to shared Terraform modules
+    when:
+      filePaths:
+        - 'modules/shared/**/*'
+        - 'modules/network/**/*'
+    severity: medium
+    reviewers:
+      teams:
+        - platform-team
+      users: []
+
+  # Add DBA review for database module changes
+  - id: database-module
+    description: Add DBA review for database module changes
+    when:
+      moduleAddress: 'module.database*'
+      resourceTypes:
+        - aws_db_*
+        - aws_rds_*
+    severity: medium
+    reviewers:
+      teams:
+        - dba-team
+      users:
+        - dba-lead
+
+  # ==========================================================================
+  # VOLUME RULES (Blast Radius Protection)
+  # ==========================================================================
+  # Volume rules use changeCount and changePercentage to limit blast radius.
+  # These are evaluated AFTER filtering by resource type/service/category.
+  #
+  # changeCount fields:
+  #   - createGte, updateGte, deleteGte, replaceGte, importGte, totalGte
+  #
+  # changePercentage fields (requires totalStateResources in payload):
+  #   - createGte, updateGte, deleteGte, replaceGte, totalGte
+  # ==========================================================================
+
+  # Flag when deleting 3+ resources in production
+  - id: prod-delete-limit
+    description: Deleting multiple resources in production requires approval
+    when:
+      actions: ['delete']
+      filePaths:
+        - 'environments/prod/**/*'
+      changeCount:
+        deleteGte: 3
+    severity: critical
+    reviewers:
+      teams:
+        - sre-team
+        - platform-team
+
+  # Flag when more than 50% of databases are being modified
+  - id: database-blast-radius
+    description: High percentage of database changes detected
+    when:
+      categories: ['database']
+      changePercentage:
+        totalGte: 50
+    severity: high
+    reviewers:
+      teams:
+        - dba-team
+        - platform-team
+
+  # Limit concurrent compute resource replacements
+  - id: compute-replacement-limit
+    description: Too many compute resources being replaced at once
+    when:
+      categories: ['compute']
+      actions: ['replace']
+      changeCount:
+        replaceGte: 5
+    severity: high
+    reviewers:
+      teams:
+        - sre-team
+
+  # ==========================================================================
+  # SERVICE RULES
+  # ==========================================================================
+  # Match all resources belonging to a cloud service.
+  # Format: "provider:service" for specific provider, or "service" for any provider
+  #
+  # Examples:
+  #   - "aws:iam"      -> aws_iam_role, aws_iam_policy, aws_iam_user, etc.
+  #   - "aws:lambda"   -> aws_lambda_function, aws_lambda_permission, etc.
+  #   - "iam"          -> aws_iam_*, google_iam_*, azurerm_role_*
+  # ==========================================================================
+
+  # All IAM changes across AWS require security review
+  - id: aws-iam-service
+    description: AWS IAM service changes require security review
+    when:
+      services: ['aws:iam']
+    severity: high
+    reviewers:
+      teams:
+        - security-team
+
+  # Lambda changes require serverless team review
+  - id: lambda-changes
+    description: Lambda function changes
+    when:
+      services: ['aws:lambda']
+      actions: ['create', 'update', 'replace']
+    severity: medium
+    reviewers:
+      teams:
+        - serverless-team
+
+  # Kubernetes/EKS changes
+  - id: eks-changes
+    description: EKS cluster changes
+    when:
+      services: ['aws:eks']
+    severity: high
+    reviewers:
+      teams:
+        - platform-team
+        - kubernetes-team
+
+  # ==========================================================================
+  # CATEGORY RULES (Cross-Cloud Abstractions)
+  # ==========================================================================
+  # Categories provide high-level abstractions across cloud providers.
+  # The taxonomy automatically maps resources to categories.
+  #
+  # Categories:
+  #   - iam:        IAM roles, policies, service accounts (AWS, GCP, Azure)
+  #   - network:    VPCs, subnets, load balancers, security groups
+  #   - compute:    VMs, containers, serverless functions
+  #   - storage:    S3, EBS, GCS, Azure Storage
+  #   - database:   RDS, DynamoDB, Cloud SQL, CosmosDB
+  #   - security:   Security groups, firewalls, encryption keys
+  #   - monitoring: CloudWatch, Cloud Monitoring, Azure Monitor
+  # ==========================================================================
+
+  # Any IAM changes across all clouds require security review
+  - id: cross-cloud-iam
+    description: IAM changes in any cloud provider require security review
+    when:
+      categories: ['iam']
+      actions: ['create', 'delete', 'replace']
+    severity: critical
+    reviewers:
+      teams:
+        - security-team
+      users:
+        - security-lead
+
+  # Network changes in production
+  - id: network-changes
+    description: Network infrastructure changes
+    when:
+      categories: ['network']
+      filePaths:
+        - 'environments/prod/**/*'
+    severity: high
+    reviewers:
+      teams:
+        - network-team
+        - sre-team
+
+  # Database deletions across any provider
+  - id: database-deletions
+    description: Database deletions require DBA approval
+    when:
+      categories: ['database']
+      actions: ['delete', 'replace']
+    severity: critical
+    reviewers:
+      teams:
+        - dba-team
+      users:
+        - dba-lead
+
+  # Security-related resources
+  - id: security-resources
+    description: Changes to security-critical resources
+    when:
+      categories: ['security']
+    severity: high
+    reviewers:
+      teams:
+        - security-team
+
+  # ==========================================================================
+  # COMBINED/INTERSECTION RULES
+  # ==========================================================================
+  # Multiple conditions are ANDed together for precise targeting.
+  # The order of evaluation:
+  #   1. Filter by resourceTypes/services/categories/moduleAddress
+  #   2. Filter by actions
+  #   3. Filter by filePaths
+  #   4. Apply volume constraints (changeCount/changePercentage)
+  # ==========================================================================
+
+  # Multiple database deletions in production
+  - id: prod-database-deletion-limit
+    description: Cannot delete multiple production databases
+    when:
+      categories: ['database']
+      actions: ['delete']
+      filePaths:
+        - 'environments/prod/**/*'
+      changeCount:
+        deleteGte: 2
+    severity: critical
+    reviewers:
+      teams:
+        - dba-team
+        - sre-team
+      users:
+        - cto
+
+  # AWS IAM role deletions
+  - id: aws-iam-role-deletions
+    description: AWS IAM role deletions require security lead approval
+    when:
+      resourceTypes: ['aws_iam_role']
+      services: ['aws:iam']
+      categories: ['iam', 'security']
+      actions: ['delete']
+    severity: critical
+    reviewers:
+      teams:
+        - security-team
+      users:
+        - security-lead
+
+  # High blast radius in shared modules
+  - id: shared-module-blast-radius
+    description: Large changes to shared modules require architecture review
+    when:
+      filePaths:
+        - 'modules/shared/**/*'
+      changeCount:
+        totalGte: 10
+    severity: high
+    reviewers:
+      teams:
+        - architecture-team
+        - platform-team
+
+  # Compute changes with proportional blast radius
+  - id: compute-blast-radius
+    description: High percentage of compute resources being changed
+    when:
+      categories: ['compute']
+      changePercentage:
+        totalGte: 30
+    severity: high
+    reviewers:
+      teams:
+        - sre-team
+        - platform-team
+
+  # ==========================================================================
+  # SLACK CHANNEL ROUTING
+  # ==========================================================================
+  # Use notify.slack to send alerts to specific channels when a rule matches.
+  # The value is a logical channel name mapped to a webhook URL in the Action.
+  #
+  # In your GitHub workflow, provide webhook URLs via the slack-webhooks input:
+  #
+  #   - uses: mergewire/action@v1
+  #     with:
+  #       api-key: ${{ secrets.MERGEWIRE_API_KEY }}
+  #       terraform-root: ./infra
+  #       slack-webhooks: |
+  #         alerts=${{ secrets.SLACK_WEBHOOK_ALERTS }}
+  #         infra-reviews=${{ secrets.SLACK_WEBHOOK_INFRA }}
+  #         security=${{ secrets.SLACK_WEBHOOK_SECURITY }}
+  #
+  # Multiple rules can share the same channel name.
+  # Rules without notify.slack produce no Slack message.
+  # ==========================================================================
+
+  # Security changes go to the security channel
+  - id: security-slack-alert
+    description: Security-sensitive changes notify the security channel
+    when:
+      categories: ['iam', 'security']
+      actions: ['create', 'delete', 'replace']
+    severity: high
+    notify:
+      slack: security
+    reviewers:
+      teams:
+        - security-team
+
+  # General infrastructure reviews go to the infra-reviews channel
+  - id: infra-review-slack
+    description: Infrastructure changes notify the infra-reviews channel
+    when:
+      categories: ['network', 'compute']
+      filePaths:
+        - 'environments/prod/**/*'
+    severity: medium
+    notify:
+      slack: infra-reviews
+    reviewers:
+      teams:
+        - platform-team

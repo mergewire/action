@@ -1,0 +1,105 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine version bump
+        id: bump
+        run: |
+          set -euo pipefail
+
+          if git describe --tags --abbrev=0 2>/dev/null; then
+            LAST_TAG=$(git describe --tags --abbrev=0)
+            COMMITS=$(git log "${LAST_TAG}..HEAD" --pretty=format:"%s")
+          else
+            COMMITS=$(git log --pretty=format:"%s")
+          fi
+
+          if [ -z "$COMMITS" ]; then
+            echo "No commits since last tag. Nothing to release."
+            exit 1
+          fi
+
+          BUMP="patch"
+
+          if echo "$COMMITS" | grep -qE "^[a-z]+(\([^)]+\))?!:|BREAKING CHANGE:"; then
+            BUMP="major"
+          elif echo "$COMMITS" | grep -qE "^feat(\([^)]+\))?:"; then
+            BUMP="minor"
+          fi
+
+          echo "bump=${BUMP}" >> "$GITHUB_OUTPUT"
+          echo "Determined bump: ${BUMP}"
+
+      - name: Bump version in package.json
+        id: version
+        run: |
+          NEW_VERSION=$(npm version "${{ steps.bump.outputs.bump }}" --no-git-tag-version)
+          echo "new_version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "New version: ${NEW_VERSION}"
+
+      - name: Build release bundle
+        run: npm run release
+
+      - name: Commit version bump and bundle
+        run: |
+          git add package.json package-lock.json dist-packed/
+          git commit -m "chore: release ${{ steps.version.outputs.new_version }} [skip ci]"
+
+      - name: Tag the release
+        run: |
+          git tag "${{ steps.version.outputs.new_version }}"
+
+      - name: Push commit and tag
+        run: |
+          git push origin main
+          git push origin "${{ steps.version.outputs.new_version }}"
+
+      - name: Update floating major tag
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.new_version }}"
+          MAJOR=$(echo "$VERSION" | sed 's/^v//' | cut -d. -f1)
+          FLOAT_TAG="v${MAJOR}"
+
+          git push origin ":refs/tags/${FLOAT_TAG}" || true
+          git tag -f "${FLOAT_TAG}"
+          git push origin "${FLOAT_TAG}"
+
+          echo "Updated floating tag ${FLOAT_TAG} → ${VERSION}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          gh release create "${{ steps.version.outputs.new_version }}" \
+            --title "${{ steps.version.outputs.new_version }}" \
+            --generate-notes \
+            --verify-tag

@@ -1,0 +1,33 @@
+name: MergeWire PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  mergewire-routing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Run MergeWire Action
+        uses: mergewire-app/action@v1
+        with:
+          api-key: ${{ secrets.MERGEWIRE_API_KEY }}
+          terraform-root: './infra'
+          request-reviewers: true
+          post-comment: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # 1. Provide an isolated cryptosecret to sign your outbound webhook responses
+          webhook-secret: ${{ secrets.MERGEWIRE_WEBHOOK_SECRET }}
+
+          # 2. Map the webhook IDs used in your .mergewire.yml (notify.webhook) to real URLs
+          webhooks: |
+            pagerduty=https://events.pagerduty.com/integration/xxx/enqueue
+            jira_automation=https://automation.atlassian.com/pro/hooks/xxx
