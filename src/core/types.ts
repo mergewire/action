@@ -46,6 +46,12 @@ export interface PullRequest {
   headSha: string;
 }
 
+export interface RepositoryConfigSnapshot {
+  path?: string;
+  ref?: string;
+  yaml: string;
+}
+
 export interface EvaluationTarget {
   terraformRoot: string;
   workspace?: string;
@@ -79,6 +85,7 @@ export interface RoutingPayload {
   source: PayloadSource;
   repo: Repo;
   pullRequest: PullRequest;
+  repoConfig?: RepositoryConfigSnapshot;
   evaluationTarget: EvaluationTarget;
   changedFiles: string[];
   summary: Summary;

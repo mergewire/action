@@ -31696,6 +31696,8 @@ var core = __nccwpck_require__(7484);
 var github = __nccwpck_require__(3228);
 // EXTERNAL MODULE: external "crypto"
 var external_crypto_ = __nccwpck_require__(6982);
+// EXTERNAL MODULE: external "fs"
+var external_fs_ = __nccwpck_require__(9896);
 // EXTERNAL MODULE: external "path"
 var external_path_ = __nccwpck_require__(6928);
 ;// CONCATENATED MODULE: ./dist/github-context.js
@@ -31803,8 +31805,6 @@ function getRunUrl() {
 
 // EXTERNAL MODULE: ./node_modules/@actions/exec/lib/exec.js
 var lib_exec = __nccwpck_require__(5236);
-// EXTERNAL MODULE: external "fs"
-var external_fs_ = __nccwpck_require__(9896);
 ;// CONCATENATED MODULE: ./dist/terraform.js
 /**
  * Terraform Execution
@@ -32905,6 +32905,7 @@ function buildRoutingPayload(options) {
         source: payloadOptions.source,
         repo: payloadOptions.repo,
         pullRequest: payloadOptions.pullRequest,
+        repoConfig: payloadOptions.repoConfig,
         evaluationTarget: {
             terraformRoot: payloadOptions.terraformRoot,
             workspace: payloadOptions.workspace,
@@ -37468,7 +37469,24 @@ async function sendRuleWebhooks(options) {
 
 
 
+
 const COMMENT_MARKER = "<!-- MergeWire Evaluation -->";
+const REPO_CONFIG_PATH = ".mergewire.yml";
+function loadRepoConfigSnapshot(headRef) {
+    const configPath = external_path_.join(process.cwd(), REPO_CONFIG_PATH);
+    if (!external_fs_.existsSync(configPath)) {
+        return undefined;
+    }
+    const yaml = external_fs_.readFileSync(configPath, "utf8").trim();
+    if (!yaml) {
+        return undefined;
+    }
+    return {
+        path: REPO_CONFIG_PATH,
+        ref: headRef,
+        yaml,
+    };
+}
 async function run() {
     const startTime = Date.now();
     let requestId = "";
@@ -37528,6 +37546,13 @@ async function run() {
         core.info(`  Plan captured: ${planResult.binarySize} bytes`);
         // Build routing payload
         core.info("\n[4/5] Building routing payload...");
+        const repoConfig = loadRepoConfigSnapshot(githubContext.pullRequest.headRef);
+        if (repoConfig) {
+            core.info(`  Included ${repoConfig.path} from ${repoConfig.ref}`);
+        }
+        else {
+            core.info(`  No ${REPO_CONFIG_PATH} found in checkout`);
+        }
         const payload = buildRoutingPayload({
             requestId,
             source: githubContext.source,
@@ -37537,6 +37562,7 @@ async function run() {
             workspace,
             environment,
             changedFiles,
+            repoConfig,
             planJson: planResult.planJson,
         });
         // Safety check: assert no sensitive data

@@ -14,8 +14,12 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import * as crypto from "crypto";
+import * as fs from "fs";
 import * as path from "path";
-import type { EvaluationResult } from "./core/types.js";
+import type {
+  EvaluationResult,
+  RepositoryConfigSnapshot,
+} from "./core/types.js";
 import { extractGitHubContext, getChangedFiles } from "./github-context.js";
 import { runTerraform } from "./terraform.js";
 import { buildRoutingPayload } from "./payload-builder.js";
@@ -28,6 +32,27 @@ import {
 import { parseWebhooks, sendRuleWebhooks } from "./webhook-sender.js";
 
 const COMMENT_MARKER = "<!-- MergeWire Evaluation -->";
+const REPO_CONFIG_PATH = ".mergewire.yml";
+
+function loadRepoConfigSnapshot(
+  headRef: string,
+): RepositoryConfigSnapshot | undefined {
+  const configPath = path.join(process.cwd(), REPO_CONFIG_PATH);
+  if (!fs.existsSync(configPath)) {
+    return undefined;
+  }
+
+  const yaml = fs.readFileSync(configPath, "utf8").trim();
+  if (!yaml) {
+    return undefined;
+  }
+
+  return {
+    path: REPO_CONFIG_PATH,
+    ref: headRef,
+    yaml,
+  };
+}
 
 async function run(): Promise<void> {
   const startTime = Date.now();
@@ -106,6 +131,14 @@ async function run(): Promise<void> {
 
     // Build routing payload
     core.info("\n[4/5] Building routing payload...");
+    const repoConfig = loadRepoConfigSnapshot(
+      githubContext.pullRequest.headRef,
+    );
+    if (repoConfig) {
+      core.info(`  Included ${repoConfig.path} from ${repoConfig.ref}`);
+    } else {
+      core.info(`  No ${REPO_CONFIG_PATH} found in checkout`);
+    }
     const payload = buildRoutingPayload({
       requestId,
       source: githubContext.source,
@@ -115,6 +148,7 @@ async function run(): Promise<void> {
       workspace,
       environment,
       changedFiles,
+      repoConfig,
       planJson: planResult.planJson,
     });
 

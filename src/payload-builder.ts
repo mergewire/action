@@ -19,6 +19,7 @@ import type {
   PullRequest,
   PayloadSource,
   Resource,
+  RepositoryConfigSnapshot,
 } from "./core/types.js";
 import { calculateSummary, normalizeActions } from "./core/helpers.js";
 import { extractPricingResources } from "./pricing-extractor.js";
@@ -32,6 +33,7 @@ interface BuildPayloadOptions {
   workspace?: string;
   environment?: string;
   changedFiles: string[];
+  repoConfig?: RepositoryConfigSnapshot;
   planJson: unknown;
 }
 
@@ -60,6 +62,7 @@ export function buildRoutingPayload(
     source: payloadOptions.source,
     repo: payloadOptions.repo,
     pullRequest: payloadOptions.pullRequest,
+    repoConfig: payloadOptions.repoConfig,
     evaluationTarget: {
       terraformRoot: payloadOptions.terraformRoot,
       workspace: payloadOptions.workspace,

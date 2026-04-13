@@ -76,6 +76,29 @@ describe("buildRoutingPayload", () => {
     );
   });
 
+  it("should include repoConfig snapshot when provided", () => {
+    const payload = buildRoutingPayload({
+      requestId: "req-123",
+      source: mockSource,
+      repo: mockRepo,
+      pullRequest: mockPullRequest,
+      terraformRoot: "./terraform",
+      changedFiles: [".mergewire.yml"],
+      repoConfig: {
+        path: ".mergewire.yml",
+        ref: "feature-branch",
+        yaml: "version: 1\nrules: []\n",
+      },
+      planJson: { resource_changes: [] },
+    });
+
+    expect(payload.repoConfig).toEqual({
+      path: ".mergewire.yml",
+      ref: "feature-branch",
+      yaml: "version: 1\nrules: []\n",
+    });
+  });
+
   it("should normalize replacement actions", () => {
     const planJson = {
       resource_changes: [

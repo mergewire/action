@@ -16,6 +16,11 @@ describe("sendPayload", () => {
       headRef: "feature-branch",
       headSha: "abc123",
     },
+    repoConfig: {
+      path: ".mergewire.yml",
+      ref: "feature-branch",
+      yaml: "version: 1\nrules: []\n",
+    },
     evaluationTarget: { terraformRoot: "./terraform" },
     changedFiles: ["main.tf"],
     summary: { creates: 1, updates: 0, deletes: 0, replaces: 0, imports: 0 },
