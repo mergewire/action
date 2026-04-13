@@ -58,14 +58,12 @@ export function extractGitHubContext(): GitHubContext {
       ? (pr.head as { sha?: string }).sha
       : undefined;
 
-  const author =
+  const user =
     typeof pr.user === "object" && pr.user !== null
-      ? (pr.user as { login?: string }).login
+      ? (pr.user as { login?: string; type?: string })
       : undefined;
-  const authorType =
-    typeof pr.user === "object" && pr.user !== null
-      ? (pr.user as { type?: string }).type
-      : undefined;
+  const author = user?.login;
+  const authorType = user?.type;
 
   if (author) {
     core.debug(`PR author: ${author} (type: ${authorType ?? "unknown"})`);
