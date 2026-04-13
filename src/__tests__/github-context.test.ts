@@ -20,6 +20,7 @@ vi.mock("@actions/github", () => ({
           number: 42,
           base: { ref: "main" },
           head: { ref: "feature-branch", sha: "abc123def456" },
+          user: { login: "test-author", type: "User" },
         },
       },
     },
@@ -35,6 +36,7 @@ vi.mock("@actions/github", () => ({
         number: 42,
         base: { ref: "main" },
         head: { ref: "feature-branch", sha: "abc123def456" },
+        user: { login: "test-author", type: "User" },
       },
     },
   },
@@ -65,6 +67,7 @@ describe("extractGitHubContext", () => {
       baseRef: "main",
       headRef: "feature-branch",
       headSha: "abc123def456",
+      author: "test-author",
     });
     expect(context.source.provider).toBe("github-actions");
     expect(context.source.version).toBeDefined();

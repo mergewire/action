@@ -1,6 +1,6 @@
 # MergeWire GitHub Action
 
-The MergeWire Action runs Terraform inside CI, reduces the plan to routing-safe metadata, and sends that payload to the MergeWire API.
+The MergeWire Action runs Terraform inside CI, reduces the plan to routing-safe metadata (including `pullRequest.author`), and sends that payload to the MergeWire API.
 
 ## Account-first setup
 

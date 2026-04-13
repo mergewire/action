@@ -44,6 +44,7 @@ export interface PullRequest {
   baseRef: string;
   headRef: string;
   headSha: string;
+  author?: string;
 }
 
 export interface RepositoryConfigSnapshot {

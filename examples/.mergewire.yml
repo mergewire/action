@@ -339,6 +339,29 @@ rules:
         - platform-team
 
   # ==========================================================================
+  # AUTHOR RULES
+  # ==========================================================================
+  # Flag PRs opened by automation or specific authors for additional review.
+  # The authors condition supports exact strings and glob patterns.
+  #
+  # Examples:
+  #   - "github-actions[bot]"    -> exact bot name
+  #   - "copilot*"               -> any author starting with "copilot"
+  # ==========================================================================
+
+  # Flag PRs authored by GitHub Actions or Copilot for human review
+  - id: automation-author-review
+    description: Automation-authored PRs require human review
+    when:
+      authors:
+        - "github-actions[bot]"
+        - "copilot*"
+    severity: medium
+    reviewers:
+      teams:
+        - platform-team
+
+  # ==========================================================================
   # SLACK CHANNEL ROUTING
   # ==========================================================================
   # Use notify.slack to send alerts to specific channels when a rule matches.
@@ -382,6 +405,24 @@ rules:
     severity: medium
     notify:
       slack: infra-reviews
+    reviewers:
+      teams:
+        - platform-team
+
+  # ==========================================================================
+  # AUTHOR RULES
+  # ==========================================================================
+  # Flag PRs authored by automation or LLM tools for additional review.
+  # Literal brackets in bot names must be escaped with [[] and []].
+
+  - id: llm-authored-review
+    description: LLM-generated infrastructure changes require human review
+    when:
+      authors:
+        - "github-actions[[]bot[]]"
+        - "copilot*"
+        - "devin-ai"
+    severity: medium
     reviewers:
       teams:
         - platform-team
