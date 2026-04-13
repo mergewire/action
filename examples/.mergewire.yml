@@ -408,3 +408,21 @@ rules:
     reviewers:
       teams:
         - platform-team
+
+  # ==========================================================================
+  # AUTHOR RULES
+  # ==========================================================================
+  # Flag PRs authored by automation or LLM tools for additional review.
+  # Literal brackets in bot names must be escaped with [[] and []].
+
+  - id: llm-authored-review
+    description: LLM-generated infrastructure changes require human review
+    when:
+      authors:
+        - "github-actions[[]bot[]]"
+        - "copilot*"
+        - "devin-ai"
+    severity: medium
+    reviewers:
+      teams:
+        - platform-team
