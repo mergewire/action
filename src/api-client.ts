@@ -22,6 +22,43 @@ interface ApiResponse {
   evaluation?: EvaluationResult;
 }
 
+function uniqueStrings(values: unknown[]): string[] {
+  return [
+    ...new Set(
+      values.filter((value): value is string => typeof value === "string"),
+    ),
+  ];
+}
+
+function normalizeEvaluation(
+  evaluation: EvaluationResult | undefined,
+): EvaluationResult | undefined {
+  if (!evaluation) {
+    return undefined;
+  }
+
+  const evidence = Array.isArray(evaluation.evidence)
+    ? evaluation.evidence
+    : [];
+  const matchedRuleIds = Array.isArray(evaluation.matchedRuleIds)
+    ? uniqueStrings(evaluation.matchedRuleIds)
+    : uniqueStrings(evidence.map((item) => item?.ruleId));
+
+  return {
+    ...evaluation,
+    matchedRuleIds,
+    requestedReviewers: {
+      users: Array.isArray(evaluation.requestedReviewers?.users)
+        ? evaluation.requestedReviewers.users
+        : [],
+      teams: Array.isArray(evaluation.requestedReviewers?.teams)
+        ? evaluation.requestedReviewers.teams
+        : [],
+    },
+    evidence,
+  };
+}
+
 /**
  * Send the routing payload to the API with HMAC signing
  */
@@ -86,25 +123,28 @@ export async function sendPayload(
       return {
         status: "accepted",
         message: data.message,
-        evaluation: data.evaluation,
+        evaluation: normalizeEvaluation(data.evaluation),
       };
     case "duplicate":
       return {
         status: "duplicate",
         message: data.message,
-        evaluation: data.evaluation,
+        evaluation: normalizeEvaluation(data.evaluation),
       };
     case "skipped":
       return {
         status: "skipped",
         message: data.message,
-        evaluation: data.evaluation,
+        evaluation: normalizeEvaluation(data.evaluation),
       };
     case "error":
       return { status: "failed", message: data.message };
     default:
       // Unknown status, but HTTP was OK
-      return { status: "accepted", evaluation: data.evaluation };
+      return {
+        status: "accepted",
+        evaluation: normalizeEvaluation(data.evaluation),
+      };
   }
 }
 
