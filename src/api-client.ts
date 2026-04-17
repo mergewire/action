@@ -23,7 +23,11 @@ interface ApiResponse {
 }
 
 function uniqueStrings(values: unknown[]): string[] {
-  return [...new Set(values.filter((value): value is string => typeof value === "string"))];
+  return [
+    ...new Set(
+      values.filter((value): value is string => typeof value === "string"),
+    ),
+  ];
 }
 
 function normalizeEvaluation(
@@ -33,7 +37,9 @@ function normalizeEvaluation(
     return undefined;
   }
 
-  const evidence = Array.isArray(evaluation.evidence) ? evaluation.evidence : [];
+  const evidence = Array.isArray(evaluation.evidence)
+    ? evaluation.evidence
+    : [];
   const matchedRuleIds = Array.isArray(evaluation.matchedRuleIds)
     ? uniqueStrings(evaluation.matchedRuleIds)
     : uniqueStrings(evidence.map((item) => item?.ruleId));
@@ -135,7 +141,10 @@ export async function sendPayload(
       return { status: "failed", message: data.message };
     default:
       // Unknown status, but HTTP was OK
-      return { status: "accepted", evaluation: normalizeEvaluation(data.evaluation) };
+      return {
+        status: "accepted",
+        evaluation: normalizeEvaluation(data.evaluation),
+      };
   }
 }
 
