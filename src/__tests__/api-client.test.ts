@@ -193,4 +193,41 @@ describe("sendPayload", () => {
       expect.any(Object),
     );
   });
+
+  it("should derive matchedRuleIds from evidence when the API omits them", async () => {
+    const mockFetch = vi.mocked(global.fetch);
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        status: "accepted",
+        evaluation: {
+          severity: "high",
+          requestedReviewers: { users: ["baires2"] },
+          evidence: [
+            {
+              ruleId: "gcp-network-exposure",
+              title: "Firewall changes",
+              summary: "Network rule matched",
+            },
+          ],
+          notifications: {
+            githubCheck: "failure",
+            postComment: true,
+            sendSlack: true,
+          },
+        },
+      }),
+    } as Response);
+
+    const result = await sendPayload(
+      "https://api.example.com",
+      "secret",
+      mockPayload,
+    );
+
+    expect(result.status).toBe("accepted");
+    expect(result.evaluation?.matchedRuleIds).toEqual(["gcp-network-exposure"]);
+    expect(result.evaluation?.requestedReviewers.teams).toEqual([]);
+  });
 });

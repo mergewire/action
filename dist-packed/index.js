@@ -33058,6 +33058,30 @@ function isAllowedPricingDimensionsPath(path) {
 
 
 
+function normalizeEvaluation(evaluation) {
+    if (!evaluation) {
+        return undefined;
+    }
+    const evidence = Array.isArray(evaluation.evidence) ? evaluation.evidence : [];
+    const matchedRuleIds = Array.isArray(evaluation.matchedRuleIds)
+        ? evaluation.matchedRuleIds
+        : evidence
+            .map((item) => item?.ruleId)
+            .filter((ruleId) => typeof ruleId === "string");
+    return {
+        ...evaluation,
+        matchedRuleIds,
+        requestedReviewers: {
+            users: Array.isArray(evaluation.requestedReviewers?.users)
+                ? evaluation.requestedReviewers.users
+                : [],
+            teams: Array.isArray(evaluation.requestedReviewers?.teams)
+                ? evaluation.requestedReviewers.teams
+                : [],
+        },
+        evidence,
+    };
+}
 /**
  * Send the routing payload to the API with HMAC signing
  */
@@ -33111,25 +33135,25 @@ async function sendPayload(apiUrl, apiKey, payload) {
             return {
                 status: "accepted",
                 message: data.message,
-                evaluation: data.evaluation,
+                evaluation: normalizeEvaluation(data.evaluation),
             };
         case "duplicate":
             return {
                 status: "duplicate",
                 message: data.message,
-                evaluation: data.evaluation,
+                evaluation: normalizeEvaluation(data.evaluation),
             };
         case "skipped":
             return {
                 status: "skipped",
                 message: data.message,
-                evaluation: data.evaluation,
+                evaluation: normalizeEvaluation(data.evaluation),
             };
         case "error":
             return { status: "failed", message: data.message };
         default:
             // Unknown status, but HTTP was OK
-            return { status: "accepted", evaluation: data.evaluation };
+            return { status: "accepted", evaluation: normalizeEvaluation(data.evaluation) };
     }
 }
 /**
