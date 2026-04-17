@@ -33069,13 +33069,17 @@ function isAllowedPricingDimensionsPath(path) {
 
 
 function uniqueStrings(values) {
-    return [...new Set(values.filter((value) => typeof value === "string"))];
+    return [
+        ...new Set(values.filter((value) => typeof value === "string")),
+    ];
 }
 function normalizeEvaluation(evaluation) {
     if (!evaluation) {
         return undefined;
     }
-    const evidence = Array.isArray(evaluation.evidence) ? evaluation.evidence : [];
+    const evidence = Array.isArray(evaluation.evidence)
+        ? evaluation.evidence
+        : [];
     const matchedRuleIds = Array.isArray(evaluation.matchedRuleIds)
         ? uniqueStrings(evaluation.matchedRuleIds)
         : uniqueStrings(evidence.map((item) => item?.ruleId));
@@ -33164,7 +33168,10 @@ async function sendPayload(apiUrl, apiKey, payload) {
             return { status: "failed", message: data.message };
         default:
             // Unknown status, but HTTP was OK
-            return { status: "accepted", evaluation: normalizeEvaluation(data.evaluation) };
+            return {
+                status: "accepted",
+                evaluation: normalizeEvaluation(data.evaluation),
+            };
     }
 }
 /**
