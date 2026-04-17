@@ -33058,16 +33058,17 @@ function isAllowedPricingDimensionsPath(path) {
 
 
 
+function uniqueStrings(values) {
+    return [...new Set(values.filter((value) => typeof value === "string"))];
+}
 function normalizeEvaluation(evaluation) {
     if (!evaluation) {
         return undefined;
     }
     const evidence = Array.isArray(evaluation.evidence) ? evaluation.evidence : [];
     const matchedRuleIds = Array.isArray(evaluation.matchedRuleIds)
-        ? evaluation.matchedRuleIds
-        : evidence
-            .map((item) => item?.ruleId)
-            .filter((ruleId) => typeof ruleId === "string");
+        ? uniqueStrings(evaluation.matchedRuleIds)
+        : uniqueStrings(evidence.map((item) => item?.ruleId));
     return {
         ...evaluation,
         matchedRuleIds,

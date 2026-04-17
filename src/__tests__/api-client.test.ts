@@ -210,6 +210,11 @@ describe("sendPayload", () => {
               title: "Firewall changes",
               summary: "Network rule matched",
             },
+            {
+              ruleId: "gcp-network-exposure",
+              title: "Firewall changes repeated",
+              summary: "Same rule matched again",
+            },
           ],
           notifications: {
             githubCheck: "failure",
@@ -229,5 +234,43 @@ describe("sendPayload", () => {
     expect(result.status).toBe("accepted");
     expect(result.evaluation?.matchedRuleIds).toEqual(["gcp-network-exposure"]);
     expect(result.evaluation?.requestedReviewers.teams).toEqual([]);
+  });
+
+  it("should deduplicate API-provided matchedRuleIds", async () => {
+    const mockFetch = vi.mocked(global.fetch);
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        status: "accepted",
+        evaluation: {
+          severity: "high",
+          matchedRuleIds: [
+            "gcp-network-exposure",
+            "gcp-network-exposure",
+            "gcp-deployer-identity",
+          ],
+          requestedReviewers: { users: ["baires2"], teams: ["platform"] },
+          evidence: [],
+          notifications: {
+            githubCheck: "failure",
+            postComment: true,
+            sendSlack: true,
+          },
+        },
+      }),
+    } as Response);
+
+    const result = await sendPayload(
+      "https://api.example.com",
+      "secret",
+      mockPayload,
+    );
+
+    expect(result.status).toBe("accepted");
+    expect(result.evaluation?.matchedRuleIds).toEqual([
+      "gcp-network-exposure",
+      "gcp-deployer-identity",
+    ]);
   });
 });

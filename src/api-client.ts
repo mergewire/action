@@ -22,6 +22,10 @@ interface ApiResponse {
   evaluation?: EvaluationResult;
 }
 
+function uniqueStrings(values: unknown[]): string[] {
+  return [...new Set(values.filter((value): value is string => typeof value === "string"))];
+}
+
 function normalizeEvaluation(
   evaluation: EvaluationResult | undefined,
 ): EvaluationResult | undefined {
@@ -31,10 +35,8 @@ function normalizeEvaluation(
 
   const evidence = Array.isArray(evaluation.evidence) ? evaluation.evidence : [];
   const matchedRuleIds = Array.isArray(evaluation.matchedRuleIds)
-    ? evaluation.matchedRuleIds
-    : evidence
-        .map((item) => item?.ruleId)
-        .filter((ruleId): ruleId is string => typeof ruleId === "string");
+    ? uniqueStrings(evaluation.matchedRuleIds)
+    : uniqueStrings(evidence.map((item) => item?.ruleId));
 
   return {
     ...evaluation,
