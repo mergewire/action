@@ -31753,7 +31753,6 @@ function extractGitHubContext() {
         baseRef: baseRef ?? "",
         headRef: headRef ?? "",
         headSha: headSha ?? "",
-        ...(author ? { author } : {}),
     };
     // Validate PR info
     if (!pullRequest.number ||
