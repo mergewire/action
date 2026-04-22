@@ -67,7 +67,6 @@ describe("extractGitHubContext", () => {
       baseRef: "main",
       headRef: "feature-branch",
       headSha: "abc123def456",
-      author: "test-author",
     });
     expect(context.source.provider).toBe("github-actions");
     expect(context.source.version).toBeDefined();

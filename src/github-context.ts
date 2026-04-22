@@ -74,7 +74,6 @@ export function extractGitHubContext(): GitHubContext {
     baseRef: baseRef ?? "",
     headRef: headRef ?? "",
     headSha: headSha ?? "",
-    ...(author ? { author } : {}),
   };
 
   // Validate PR info
