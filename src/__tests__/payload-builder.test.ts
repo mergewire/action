@@ -70,11 +70,6 @@ describe("buildRoutingPayload", () => {
     expect(payload.resources).toHaveLength(2);
     expect(payload.summary.creates).toBe(1);
     expect(payload.summary.updates).toBe(1);
-    expect(payload.pricingResources).toHaveLength(1);
-    expect(payload.pricingResources![0].address).toBe("aws_instance.example");
-    expect(payload.pricingResources![0].unpricedReason).toBe(
-      "missing_dimensions",
-    );
   });
 
   it("should include repoConfig snapshot when provided", () => {
@@ -127,9 +122,6 @@ describe("buildRoutingPayload", () => {
     expect(payload.resources[0].actions).toEqual(["replace"]);
     expect(payload.resources[0].replacePaths).toEqual([["attr1"], ["attr2"]]);
     expect(payload.summary.replaces).toBe(1);
-    expect(payload.pricingResources).toHaveLength(1);
-    expect(payload.pricingResources![0].address).toBe("aws_instance.example");
-    expect(payload.pricingResources![0].action).toBe("replace");
   });
 
   it("should handle import operations", () => {
@@ -161,9 +153,6 @@ describe("buildRoutingPayload", () => {
     expect(payload.resources[0].actions).toEqual(["import"]);
     expect(payload.resources[0].importingId).toBe("i-1234567890abcdef0");
     expect(payload.summary.imports).toBe(1);
-    expect(payload.pricingResources).toHaveLength(1);
-    expect(payload.pricingResources![0].address).toBe("aws_instance.example");
-    expect(payload.pricingResources![0].action).toBe("import");
   });
 
   it("should skip no-op resources without imports", () => {
@@ -197,8 +186,6 @@ describe("buildRoutingPayload", () => {
     });
 
     expect(payload.resources).toHaveLength(1);
-    expect(payload.resources[0].address).toBe("aws_s3_bucket.data");
-    expect(payload.pricingResources).toHaveLength(0);
   });
 
   it("should handle empty plan", () => {
@@ -224,7 +211,6 @@ describe("buildRoutingPayload", () => {
       replaces: 0,
       imports: 0,
     });
-    expect(payload.pricingResources).toHaveLength(0);
   });
 
   it("should handle missing resource_changes", () => {
@@ -241,7 +227,6 @@ describe("buildRoutingPayload", () => {
     });
 
     expect(payload.resources).toHaveLength(0);
-    expect(payload.pricingResources).toHaveLength(0);
   });
 
   it("should NOT include forbidden fields in payload", () => {
@@ -281,202 +266,6 @@ describe("buildRoutingPayload", () => {
     const resource = payload.resources[0] as Record<string, unknown>;
     expect(resource.before).toBeUndefined();
     expect(resource.after).toBeUndefined();
-
-    // Pricing resource should be present but keep only normalized pricing-safe dimensions
-    expect(payload.pricingResources).toHaveLength(1);
-    const pricingResource = payload.pricingResources![0] as Record<
-      string,
-      unknown
-    >;
-    expect(pricingResource.before).toBeNull();
-    expect(pricingResource.after).toBeNull();
-  });
-
-  it("should include pricing resources for supported families", () => {
-    const planJson = {
-      resource_changes: [
-        {
-          address: "aws_instance.web",
-          type: "aws_instance",
-          change: {
-            actions: ["create"],
-            after: { instance_type: "t3.medium", region: "us-east-1" },
-          },
-        },
-        {
-          address: "google_compute_instance.app",
-          type: "google_compute_instance",
-          change: {
-            actions: ["update"],
-            after: { machine_type: "n1-standard-2", zone: "us-central1-a" },
-            before: { machine_type: "n1-standard-1", zone: "us-central1-a" },
-          },
-        },
-        {
-          address: "azurerm_linux_virtual_machine.db",
-          type: "azurerm_linux_virtual_machine",
-          change: {
-            actions: ["delete"],
-            before: { size: "Standard_B1s", location: "eastus" },
-          },
-        },
-        {
-          address: "aws_db_instance.main",
-          type: "aws_db_instance",
-          change: {
-            actions: ["create"],
-            after: {
-              instance_class: "db.t3.micro",
-              engine: "postgres",
-              allocated_storage: 20,
-              storage_type: "gp3",
-              availability_zone: "us-east-1a",
-            },
-          },
-        },
-        {
-          address: "aws_ebs_volume.data",
-          type: "aws_ebs_volume",
-          change: {
-            actions: ["create"],
-            after: {
-              type: "gp3",
-              size: 100,
-              availability_zone: "us-east-1a",
-            },
-          },
-        },
-      ],
-    };
-
-    const payload = buildRoutingPayload({
-      requestId: "req-123",
-      source: mockSource,
-      repo: mockRepo,
-      pullRequest: mockPullRequest,
-      terraformRoot: "./terraform",
-      changedFiles: [],
-      planJson,
-    });
-
-    expect(payload.pricingResources).toHaveLength(5);
-
-    const aws = payload.pricingResources![0];
-    expect(aws.address).toBe("aws_instance.web");
-    expect(aws.type).toBe("aws_instance");
-    expect(aws.provider).toBe("aws");
-    expect(aws.region).toBe("us-east-1");
-    expect(aws.pricingFamily).toBe("vm_compute");
-    expect(aws.after).toEqual({ sku: "t3.medium" });
-    expect(aws.action).toBe("create");
-
-    const gcp = payload.pricingResources![1];
-    expect(gcp.address).toBe("google_compute_instance.app");
-    expect(gcp.type).toBe("google_compute_instance");
-    expect(gcp.provider).toBe("gcp");
-    expect(gcp.region).toBe("us-central1");
-    expect(gcp.pricingFamily).toBe("vm_compute");
-    expect(gcp.before).toEqual({ sku: "n1-standard-1" });
-    expect(gcp.after).toEqual({ sku: "n1-standard-2" });
-    expect(gcp.action).toBe("update");
-
-    const azure = payload.pricingResources![2];
-    expect(azure.address).toBe("azurerm_linux_virtual_machine.db");
-    expect(azure.type).toBe("azurerm_linux_virtual_machine");
-    expect(azure.provider).toBe("azure");
-    expect(azure.region).toBe("eastus");
-    expect(azure.pricingFamily).toBe("vm_compute");
-    expect(azure.before).toEqual({
-      sku: "Standard_B1s",
-      osDiscriminator: "linux",
-    });
-    expect(azure.action).toBe("delete");
-
-    const rds = payload.pricingResources![3];
-    expect(rds.pricingFamily).toBe("managed_db");
-    expect(rds.after).toMatchObject({
-      engine: "postgres",
-      sku: "db.t3.micro",
-      deploymentModel: "single_az",
-      storage: {
-        sizeGiB: 20,
-        storageClass: "gp3",
-      },
-    });
-
-    const ebs = payload.pricingResources![4];
-    expect(ebs.pricingFamily).toBe("block_storage");
-    expect(ebs.after).toEqual({
-      sku: "gp3",
-      sizeGiB: 100,
-    });
-  });
-
-  it("should mark pricing resources as unpriced when dimensions are missing", () => {
-    const planJson = {
-      resource_changes: [
-        {
-          address: "aws_instance.example",
-          type: "aws_instance",
-          change: {
-            actions: ["create"],
-          },
-        },
-      ],
-    };
-
-    const payload = buildRoutingPayload({
-      requestId: "req-123",
-      source: mockSource,
-      repo: mockRepo,
-      pullRequest: mockPullRequest,
-      terraformRoot: "./terraform",
-      changedFiles: [],
-      planJson,
-    });
-
-    expect(payload.pricingResources).toHaveLength(1);
-    expect(payload.pricingResources![0].unpricedReason).toBe(
-      "missing_dimensions",
-    );
-    expect(payload.pricingResources![0].region).toBe("");
-  });
-
-  it("should NOT include forbidden fields in pricing resources", () => {
-    const planJson = {
-      resource_changes: [
-        {
-          address: "aws_instance.example",
-          type: "aws_instance",
-          change: {
-            actions: ["create"],
-            before: { instance_type: "t3.small", region: "us-east-1" },
-            after: { instance_type: "t3.medium", region: "us-east-1" },
-          },
-        },
-      ],
-    };
-
-    const payload = buildRoutingPayload({
-      requestId: "req-123",
-      source: mockSource,
-      repo: mockRepo,
-      pullRequest: mockPullRequest,
-      terraformRoot: "./terraform",
-      changedFiles: [],
-      planJson,
-    });
-
-    const violations = validateNoForbiddenFields(payload);
-    expect(violations).toHaveLength(0);
-
-    expect(payload.pricingResources).toHaveLength(1);
-    const pricingResource = payload.pricingResources![0] as Record<
-      string,
-      unknown
-    >;
-    expect(pricingResource.before).toBeNull();
-    expect(pricingResource.after).toEqual({ sku: "t3.medium" });
   });
 });
 

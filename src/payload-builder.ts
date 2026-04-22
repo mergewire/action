@@ -22,7 +22,6 @@ import type {
   RepositoryConfigSnapshot,
 } from "./core/types.js";
 import { calculateSummary, normalizeActions } from "./core/helpers.js";
-import { extractPricingResources } from "./pricing-extractor.js";
 
 interface BuildPayloadOptions {
   requestId: string;
@@ -54,9 +53,6 @@ export function buildRoutingPayload(
   // Calculate summary
   const summary = calculateSummary(resources);
 
-  // Extract pricing resources
-  const pricingResources = extractPricingResources(planJson);
-
   return {
     requestId: payloadOptions.requestId,
     source: payloadOptions.source,
@@ -71,7 +67,6 @@ export function buildRoutingPayload(
     changedFiles: payloadOptions.changedFiles,
     summary,
     resources,
-    pricingResources,
   };
 }
 
@@ -232,10 +227,7 @@ export function validateNoForbiddenFields(obj: unknown, path = ""): string[] {
   for (const [key, value] of Object.entries(obj)) {
     const currentPath = path ? `${path}.${key}` : key;
 
-    if (
-      forbiddenFields.includes(key) &&
-      !isAllowedPricingDimensionsPath(currentPath)
-    ) {
+    if (forbiddenFields.includes(key)) {
       violations.push(currentPath);
     }
 
@@ -245,8 +237,4 @@ export function validateNoForbiddenFields(obj: unknown, path = ""): string[] {
   }
 
   return violations;
-}
-
-function isAllowedPricingDimensionsPath(path: string): boolean {
-  return /^pricingResources\[\d+\]\.(before|after)$/.test(path);
 }
