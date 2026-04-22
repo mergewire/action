@@ -5,8 +5,6 @@
  * and can be published as a standalone open-source GitHub Action.
  */
 
-import type { PricingResource } from "./pricing-types.js";
-
 // ============================================================================
 // Base Types
 // ============================================================================
@@ -91,7 +89,6 @@ export interface RoutingPayload {
   changedFiles: string[];
   summary: Summary;
   resources: Resource[];
-  pricingResources?: PricingResource[];
 }
 
 export interface EvidenceItem {
@@ -119,7 +116,7 @@ export interface EvaluationResult {
   requestedReviewers: RequestedReviewers;
   evidence: EvidenceItem[];
   notifications: NotificationDecisions;
-  costSummary?: import("./pricing-types.js").CostSummary;
+
   notifySlackFinance?: boolean;
   notifySlackChannels?: string[];
 }
