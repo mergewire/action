@@ -107,3 +107,6 @@ rules:
 | `request-id`     | Correlation id for backend ingest               |
 | `routing-status` | `accepted`, `duplicate`, `skipped`, or `failed` |
 | `summary-json`   | Compact execution summary                       |
+
+## Documentation
+https://mergewire.app/docs
