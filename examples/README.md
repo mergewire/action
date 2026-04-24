@@ -4,15 +4,21 @@ This directory contains example configurations and workflows for the MergeWire G
 
 ## Files
 
-| File                  | Description                                                  |
-| --------------------- | ------------------------------------------------------------ |
-| `minimal.yml`         | Minimal copy-paste starter workflow (no cloud credentials)   |
-| `workflow.yml`        | Full example with AWS OIDC credentials and output logging    |
-| `aws-oidc.yml`        | AWS OIDC authentication with no static credentials           |
-| `multi-root.yml`      | Matrix strategy for repos with multiple Terraform roots      |
-| `.mergewire.yml`      | Routing rules configuration with examples for all rule types |
-| `.mergewire-cost.yml` | Cost-aware routing rules with Infracost integration          |
-| `TAXONOMY.md`         | Complete reference for services and categories               |
+| File             | Description                                                |
+| ---------------- | ---------------------------------------------------------- |
+| `minimal.yml`    | Minimal copy-paste starter workflow (no cloud credentials) |
+| `workflow.yml`   | Full example with AWS OIDC credentials and output logging  |
+| `aws-oidc.yml`   | AWS OIDC authentication with no static credentials         |
+| `.mergewire.yml` | Routing rules configuration for supported rule types       |
+| `TAXONOMY.md`    | Complete reference for services and categories             |
+
+Advanced examples:
+
+| File                    | Description                                  |
+| ----------------------- | -------------------------------------------- |
+| `multi-root.yml`        | Matrix strategy for explicit Terraform roots |
+| `webhooks.yml`          | Rule-based generic webhook routing config    |
+| `webhooks-workflow.yml` | Workflow wiring for generic webhook delivery |
 
 ## Quick Start
 
@@ -92,22 +98,6 @@ Match by high-level category across all clouds:
   severity: medium
 ```
 
-### Cost Rules
-
-Add cost awareness to your routing:
-
-```yaml
-- id: expensive-changes
-  when:
-    cost:
-      monthlyDeltaUsdGte: 500
-  severity: high
-  notify:
-    slackFinance: true
-```
-
-See `.mergewire-cost.yml` for complete cost rule examples.
-
 ## Common Patterns
 
 ### Production Protection
@@ -171,13 +161,13 @@ rules:
     reviewers:
       teams: [dba-team]
 
-  # Expensive database additions
-  - id: db-cost-alert
+  # Multiple database additions
+  - id: db-create-volume
     when:
       categories: ["database"]
       actions: [create]
-      cost:
-        monthlyDeltaUsdGte: 1000
+      changeCount:
+        createGte: 3
     severity: high
 ```
 
@@ -244,10 +234,6 @@ rules:
         createGte: 10
         totalGte: 25
 
-      # Cost constraints (requires Infracost)
-      cost:
-        monthlyDeltaUsdGte: 500
-
     # Severity escalation
     severity: low | medium | high | critical
 
@@ -258,7 +244,7 @@ rules:
 
     # Notifications (optional)
     notify:
-      slackFinance: true # Requires FINANCE_SLACK_WEBHOOK_URL
+      slack: security-alerts
 ```
 
 ### Evaluation Order
@@ -297,17 +283,6 @@ See [TAXONOMY.md](./TAXONOMY.md) for:
 - Category descriptions and example resources
 - Volume constraint usage
 - Evaluation order details
-
-## Cost Integration
-
-To enable cost-aware routing:
-
-1. Sign up for [Infracost](https://www.infracost.io/)
-2. Add your Infracost API key as `INFRACOST_API_KEY` secret
-3. Use cost rules in your `.mergewire-cost.yml`
-4. Enable finance notifications with `notify.slackFinance: true`
-
-Cost rules require a paid MergeWire plan.
 
 ## Support
 

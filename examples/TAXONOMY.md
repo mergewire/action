@@ -10,7 +10,7 @@ The taxonomy maps Terraform resource types (like `aws_iam_role`, `google_compute
 
 1. **Cloud Provider** (`aws`, `gcp`, `azure`)
 2. **Service** (`iam`, `ec2`, `compute`, `s3`, etc.)
-3. **Categories** (`iam`, `network`, `compute`, `storage`, `database`, `security`, `monitoring`)
+3. **Categories** (`iam`, `network`, `compute`, `storage`, `database`, `security`, `monitoring`, `analytics`, `ai_ml`, `containers`, `integration`, `governance`)
 
 ### Why Use It?
 
@@ -36,15 +36,20 @@ services: ["aws:iam"]
 
 Categories provide cross-cloud abstractions. A single category can match resources from AWS, GCP, and Azure.
 
-| Category     | Description                  | Example Resources                                                                 |
-| ------------ | ---------------------------- | --------------------------------------------------------------------------------- |
-| `iam`        | Identity & Access Management | `aws_iam_role`, `google_service_account`, `azurerm_role_assignment`               |
-| `network`    | Networking & Connectivity    | `aws_vpc`, `google_compute_network`, `azurerm_virtual_network`                    |
-| `compute`    | Compute Resources            | `aws_instance`, `google_compute_instance`, `azurerm_linux_virtual_machine`        |
-| `storage`    | Storage Services             | `aws_s3_bucket`, `google_storage_bucket`, `azurerm_storage_account`               |
-| `database`   | Database Services            | `aws_db_instance`, `google_sql_database`, `azurerm_mssql_server`                  |
-| `security`   | Security Resources           | `aws_security_group`, `google_compute_firewall`, `azurerm_network_security_group` |
-| `monitoring` | Observability                | `aws_cloudwatch_dashboard`, `google_monitoring_alert_policy`                      |
+| Category      | Description                  | Example Resources                                                                        |
+| ------------- | ---------------------------- | ---------------------------------------------------------------------------------------- |
+| `iam`         | Identity & Access Management | `aws_iam_role`, `google_service_account`, `azurerm_role_assignment`                      |
+| `network`     | Networking & Connectivity    | `aws_vpc`, `google_compute_network`, `azurerm_virtual_network`                           |
+| `compute`     | Compute Resources            | `aws_instance`, `google_compute_instance`, `azurerm_linux_virtual_machine`               |
+| `storage`     | Storage Services             | `aws_s3_bucket`, `google_storage_bucket`, `azurerm_storage_account`                      |
+| `database`    | Database Services            | `aws_db_instance`, `google_sql_database`, `azurerm_mssql_server`                         |
+| `security`    | Security Resources           | `aws_security_group`, `google_compute_firewall`, `azurerm_network_security_group`        |
+| `monitoring`  | Observability                | `aws_cloudwatch_dashboard`, `google_monitoring_alert_policy`                             |
+| `analytics`   | Data Analytics               | `aws_redshift_cluster`, `google_bigquery_dataset`, `azurerm_synapse_workspace`           |
+| `ai_ml`       | AI and Machine Learning      | `aws_sagemaker_domain`, `google_vertex_ai_dataset`, `azurerm_machine_learning_workspace` |
+| `containers`  | Container Platforms          | `aws_ecs_cluster`, `google_container_cluster`, `azurerm_kubernetes_cluster`              |
+| `integration` | Messaging and Workflows      | `aws_sqs_queue`, `google_pubsub_topic`, `azurerm_servicebus_queue`                       |
+| `governance`  | Governance and Audit         | `aws_cloudtrail`, `google_resource_manager_project`, `azurerm_policy_assignment`         |
 
 ### Using Categories
 
@@ -247,19 +252,22 @@ rules:
   - id: global-iam-deletions
     description: IAM deletions across any cloud
     when:
-      categories: ['iam']
-      actions: ['delete', 'replace']
+      categories: ["iam"]
+      actions: ["delete", "replace"]
     severity: critical
     reviewers:
       teams: [security-team]
       users: [security-lead]
 
-  # Security group changes in any cloud
+  # Security group and firewall changes in any cloud
   - id: security-group-changes
     description: Firewall/security group changes
     when:
-      categories: ['security']
-      categories: ['network', 'security']  # Resources with BOTH categories
+      resourceTypes:
+        - aws_security_group*
+        - google_compute_firewall
+        - azurerm_network_security_group
+      categories: ["security"]
     severity: high
     reviewers:
       teams: [security-team, network-team]
@@ -282,9 +290,9 @@ rules:
       teams: [dba-team]
       users: [cto]
 
-  # Expensive database additions with volume
-  - id: database-cost-and-volume
-    description: Multiple expensive database additions
+  # Multiple database additions
+  - id: database-create-volume
+    description: Multiple database additions
     when:
       categories: ["database"]
       actions: ["create"]
@@ -341,9 +349,6 @@ When a rule has multiple conditions, they are evaluated in this order:
 4. **Volume Constraints**
    - `changeCount` - Fixed thresholds
    - `changePercentage` - Proportional thresholds (requires `totalStateResources`)
-
-5. **Cost Constraints**
-   - `cost.monthlyDeltaUsdGte` - Cost threshold
 
 All conditions use AND logic (intersection). A rule only matches if ALL its conditions are satisfied.
 

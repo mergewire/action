@@ -16,8 +16,9 @@ jobs:
           terraform_wrapper: false
 
       - name: Run MergeWire Action
-        uses: mergewire-app/action@v1
+        uses: mergewire/action@v1
         with:
+          api-url: ${{ vars.MERGEWIRE_API_URL }}
           api-key: ${{ secrets.MERGEWIRE_API_KEY }}
           terraform-root: "./infra"
           request-reviewers: true
@@ -29,5 +30,5 @@ jobs:
 
           # 2. Map the webhook IDs used in your .mergewire.yml (notify.webhook) to real URLs
           webhooks: |
-            pagerduty=https://events.pagerduty.com/integration/xxx/enqueue
-            jira_automation=https://automation.atlassian.com/pro/hooks/xxx
+            incident=https://example.com/mergewire/incident
+            audit=https://example.com/mergewire/audit

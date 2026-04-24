@@ -22,6 +22,7 @@ const SEVERITY_ORDER: Record<Severity, number> = {
   low: 0,
   medium: 1,
   high: 2,
+  critical: 3,
 };
 
 export function compareSeverity(a: Severity, b: Severity): number {
@@ -219,7 +220,12 @@ export function createPayloadKey(payload: RoutingPayload): string {
 // ============================================================================
 
 export function isValidSeverity(value: string): value is Severity {
-  return value === "low" || value === "medium" || value === "high";
+  return (
+    value === "low" ||
+    value === "medium" ||
+    value === "high" ||
+    value === "critical"
+  );
 }
 
 export function isValidResourceActions(

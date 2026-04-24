@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { isReplacementAction } from "../helpers.js";
+import {
+  compareSeverity,
+  coerceSeverity,
+  isReplacementAction,
+  isValidSeverity,
+  maxSeverity,
+  meetsSeverityThreshold,
+} from "../helpers.js";
 
 describe("isReplacementAction", () => {
   it("should return true for actions indicating replacement (create, delete)", () => {
@@ -30,5 +37,18 @@ describe("isReplacementAction", () => {
     expect(isReplacementAction(["delete", "update"])).toBe(false);
     expect(isReplacementAction(["read"])).toBe(false);
     expect(isReplacementAction(["no-op"])).toBe(false);
+  });
+});
+
+describe("severity helpers", () => {
+  it("should rank critical above high", () => {
+    expect(compareSeverity("critical", "high")).toBeGreaterThan(0);
+    expect(maxSeverity(["low", "critical", "high"])).toBe("critical");
+    expect(meetsSeverityThreshold("critical", "high")).toBe(true);
+  });
+
+  it("should validate critical severity", () => {
+    expect(isValidSeverity("critical")).toBe(true);
+    expect(coerceSeverity("critical")).toBe("critical");
   });
 });

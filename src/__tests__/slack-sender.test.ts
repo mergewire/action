@@ -51,7 +51,7 @@ describe("parseSlackWebhooks", () => {
     const input = [
       "alerts=https://hooks.slack.com/services/T1/B1/xxx",
       "security=https://hooks.slack.com/services/T2/B2/yyy",
-      "finance=https://hooks.slack.com/services/T3/B3/zzz",
+      "infra=https://hooks.slack.com/services/T3/B3/zzz",
     ].join("\n");
     const result = parseSlackWebhooks(input);
     expect(result.size).toBe(3);
@@ -323,6 +323,46 @@ rules:
     expect(vi.mocked(fetch).mock.calls[0]?.[0]).toBe(
       "https://hooks.slack.com/services/T1/B1/xxx",
     );
+  });
+
+  it("should format critical severity explicitly", async () => {
+    const configPath = path.join(tmpDir, ".mergewire.yml");
+    await writeFile(
+      configPath,
+      `
+version: 1
+defaults:
+  reviewers:
+    teams: []
+    users: []
+rules:
+  - id: prod-destructive
+    description: Test
+    when: {}
+    severity: critical
+    notify:
+      slack: alerts
+`.trim(),
+    );
+
+    vi.mocked(fetch).mockResolvedValueOnce(new Response("ok", { status: 200 }));
+
+    await sendRuleSlackNotifications({
+      webhookMap: new Map([
+        ["alerts", "https://hooks.slack.com/services/T1/B1/xxx"],
+      ]),
+      matchedRuleIds: ["prod-destructive"],
+      configPath,
+      evaluation: { ...mockEvaluation, severity: "critical" },
+      repository: { owner: "acme", name: "infra" },
+      prNumber: 42,
+    });
+
+    const body = JSON.parse(
+      vi.mocked(fetch).mock.calls[0]?.[1]?.body as string,
+    );
+    expect(body.text).toContain("🚨 Critical severity alert");
+    expect(JSON.stringify(body.blocks)).toContain("🚨 *Critical Severity*");
   });
 
   it("should log warning and not throw when channel name has no webhook", async () => {

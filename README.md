@@ -109,4 +109,5 @@ rules:
 | `summary-json`   | Compact execution summary                       |
 
 ## Documentation
+
 https://mergewire.app/docs
