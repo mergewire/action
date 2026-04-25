@@ -34,7 +34,6 @@ interface MinimalRule {
   id: string;
   notify?: {
     slack?: string;
-    slackFinance?: boolean;
   };
 }
 
@@ -147,12 +146,14 @@ const SEVERITY_EMOJI: Record<string, string> = {
   low: "🔵",
   medium: "🟡",
   high: "🔴",
+  critical: "🚨",
 };
 
 const SEVERITY_LABEL: Record<string, string> = {
   low: "Low",
   medium: "Medium",
   high: "High",
+  critical: "Critical",
 };
 
 function buildSlackMessage(options: {

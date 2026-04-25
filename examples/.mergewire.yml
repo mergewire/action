@@ -33,9 +33,6 @@ defaults:
 #    Match resources by high-level category across cloud providers.
 #    Categories: iam, network, compute, storage, database, security, monitoring
 #
-# 5. COST RULES (cost)
-#    See .mergewire-cost.yml for cost-based rule examples.
-#
 # All conditions in a rule are ANDed together (intersection).
 # ============================================================================
 
@@ -216,6 +213,11 @@ rules:
   #   - database:   RDS, DynamoDB, Cloud SQL, CosmosDB
   #   - security:   Security groups, firewalls, encryption keys
   #   - monitoring: CloudWatch, Cloud Monitoring, Azure Monitor
+  #   - analytics:  Redshift, BigQuery, Synapse
+  #   - ai_ml:      SageMaker, Vertex AI, Azure Machine Learning
+  #   - containers: ECS, EKS, GKE, AKS
+  #   - integration: SQS, Pub/Sub, Service Bus
+  #   - governance: CloudTrail, Resource Manager, Azure Policy
   # ==========================================================================
 
   # Any IAM changes across all clouds require security review

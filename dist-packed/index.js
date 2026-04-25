@@ -31990,6 +31990,7 @@ const SEVERITY_ORDER = {
     low: 0,
     medium: 1,
     high: 2,
+    critical: 3,
 };
 function compareSeverity(a, b) {
     return SEVERITY_ORDER[a] - SEVERITY_ORDER[b];
@@ -32154,7 +32155,10 @@ function createPayloadKey(payload) {
 // Validation Helpers
 // ============================================================================
 function isValidSeverity(value) {
-    return value === "low" || value === "medium" || value === "high";
+    return (value === "low" ||
+        value === "medium" ||
+        value === "high" ||
+        value === "critical");
 }
 function isValidResourceActions(actions) {
     return actions.every((a) => VALID_ACTIONS.includes(a));
@@ -36441,11 +36445,13 @@ const SEVERITY_EMOJI = {
     low: "🔵",
     medium: "🟡",
     high: "🔴",
+    critical: "🚨",
 };
 const SEVERITY_LABEL = {
     low: "Low",
     medium: "Medium",
     high: "High",
+    critical: "Critical",
 };
 function buildSlackMessage(options) {
     const { owner, name } = options.repository;
@@ -37090,6 +37096,11 @@ async function applySeverityLabel(octokit, owner, repo, issue_number, severity) 
             description: "Medium risk Terraform changes",
         },
         high: {
+            name: "mergewire: high-risk",
+            color: "FF6600",
+            description: "High risk Terraform changes",
+        },
+        critical: {
             name: "mergewire: critical",
             color: "FF0000",
             description: "Critical Terraform changes requiring immediate attention",
@@ -37166,6 +37177,9 @@ function buildCommentBody(evaluation) {
     const routingMsg = routingTo ? ` Routing to ${routingTo}.` : "";
     if (evaluation.severity === "low") {
         lines.push("✅ **Low Risk:** Auto-approved. No destructive changes detected.");
+    }
+    else if (evaluation.severity === "critical") {
+        lines.push(`🚨 **Critical Risk:** Critical impact changes detected.${routingMsg}`);
     }
     else if (evaluation.severity === "high") {
         lines.push(`⚠️ **High Risk:** High impact changes detected.${routingMsg}`);

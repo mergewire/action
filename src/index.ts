@@ -19,6 +19,7 @@ import * as path from "path";
 import type {
   EvaluationResult,
   RepositoryConfigSnapshot,
+  Severity,
 } from "./core/types.js";
 import { extractGitHubContext, getChangedFiles } from "./github-context.js";
 import { runTerraform } from "./terraform.js";
@@ -415,7 +416,7 @@ async function applySeverityLabel(
   owner: string,
   repo: string,
   issue_number: number,
-  severity: "low" | "medium" | "high",
+  severity: Severity,
 ): Promise<void> {
   const labelConfig = {
     low: {
@@ -429,6 +430,11 @@ async function applySeverityLabel(
       description: "Medium risk Terraform changes",
     },
     high: {
+      name: "mergewire: high-risk",
+      color: "FF6600",
+      description: "High risk Terraform changes",
+    },
+    critical: {
       name: "mergewire: critical",
       color: "FF0000",
       description: "Critical Terraform changes requiring immediate attention",
@@ -518,6 +524,10 @@ function buildCommentBody(evaluation: EvaluationResult): string {
   if (evaluation.severity === "low") {
     lines.push(
       "✅ **Low Risk:** Auto-approved. No destructive changes detected.",
+    );
+  } else if (evaluation.severity === "critical") {
+    lines.push(
+      `🚨 **Critical Risk:** Critical impact changes detected.${routingMsg}`,
     );
   } else if (evaluation.severity === "high") {
     lines.push(`⚠️ **High Risk:** High impact changes detected.${routingMsg}`);

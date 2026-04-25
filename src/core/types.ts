@@ -9,7 +9,7 @@
 // Base Types
 // ============================================================================
 
-export type Severity = "low" | "medium" | "high";
+export type Severity = "low" | "medium" | "high" | "critical";
 
 export const VALID_ACTIONS = [
   "create",
@@ -117,7 +117,6 @@ export interface EvaluationResult {
   evidence: EvidenceItem[];
   notifications: NotificationDecisions;
 
-  notifySlackFinance?: boolean;
   notifySlackChannels?: string[];
 }
 

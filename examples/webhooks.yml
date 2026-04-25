@@ -7,24 +7,24 @@ defaults:
     teams: ["security-ops"]
 
 rules:
-  # 1. PagerDuty on database deletions
+  # 1. Incident webhook on database deletions
   - id: "database-deletion-alert"
-    description: "Trigger PagerDuty incident on database deletion."
+    description: "Trigger an incident webhook on database deletion."
     severity: critical
     notify:
-      webhook: "pagerduty"
+      webhook: "incident"
     reviewers:
       teams: ["data-platform"]
     when:
       actions: ["delete"]
       categories: ["database"]
 
-  # 2. Jira tickets for broad IAM modifications
+  # 2. Audit webhook for broad IAM modifications
   - id: "iam-tickets"
-    description: "Generate an internal Jira ticket whenever IAM policies are modified."
+    description: "Notify an internal audit workflow whenever IAM policies are modified."
     severity: medium
     notify:
-      webhook: "jira_automation"
+      webhook: "audit"
     reviewers:
       teams: ["infrastructure"]
     when:
