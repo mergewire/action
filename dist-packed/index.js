@@ -32208,6 +32208,7 @@ function buildRoutingPayload(options) {
             environment: payloadOptions.environment,
         },
         changedFiles: payloadOptions.changedFiles,
+        codeownersContent: payloadOptions.codeownersContent,
         summary,
         resources,
     };
@@ -36812,6 +36813,18 @@ function loadRepoConfigSnapshot(headRef) {
         yaml,
     };
 }
+function loadCodeownersContent() {
+    const possiblePaths = [".github/CODEOWNERS", "CODEOWNERS", "docs/CODEOWNERS"];
+    for (const p of possiblePaths) {
+        const fullPath = external_path_.join(process.cwd(), p);
+        if (external_fs_.existsSync(fullPath) && external_fs_.statSync(fullPath).isFile()) {
+            const content = external_fs_.readFileSync(fullPath, "utf8").trim();
+            core.info(`  Loaded CODEOWNERS from ${p}`);
+            return content;
+        }
+    }
+    return undefined;
+}
 async function run() {
     const startTime = Date.now();
     let requestId = "";
@@ -36878,6 +36891,7 @@ async function run() {
         else {
             core.info(`  No ${REPO_CONFIG_PATH} found in checkout`);
         }
+        const codeownersContent = loadCodeownersContent();
         const payload = buildRoutingPayload({
             requestId,
             source: githubContext.source,
@@ -36888,6 +36902,7 @@ async function run() {
             environment,
             changedFiles,
             repoConfig,
+            codeownersContent,
             planJson: planResult.planJson,
         });
         // Safety check: assert no sensitive data
