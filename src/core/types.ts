@@ -87,6 +87,7 @@ export interface RoutingPayload {
   repoConfig?: RepositoryConfigSnapshot;
   evaluationTarget: EvaluationTarget;
   changedFiles: string[];
+  codeownersContent?: string;
   summary: Summary;
   resources: Resource[];
 }
