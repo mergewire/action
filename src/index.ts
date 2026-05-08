@@ -55,6 +55,21 @@ function loadRepoConfigSnapshot(
   };
 }
 
+function loadCodeownersContent(): string | undefined {
+  const possiblePaths = [".github/CODEOWNERS", "CODEOWNERS", "docs/CODEOWNERS"];
+
+  for (const p of possiblePaths) {
+    const fullPath = path.join(process.cwd(), p);
+    if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+      const content = fs.readFileSync(fullPath, "utf8").trim();
+      core.info(`  Loaded CODEOWNERS from ${p}`);
+      return content;
+    }
+  }
+
+  return undefined;
+}
+
 async function run(): Promise<void> {
   const startTime = Date.now();
   let requestId = "";
@@ -140,6 +155,8 @@ async function run(): Promise<void> {
     } else {
       core.info(`  No ${REPO_CONFIG_PATH} found in checkout`);
     }
+    const codeownersContent = loadCodeownersContent();
+
     const payload = buildRoutingPayload({
       requestId,
       source: githubContext.source,
@@ -150,6 +167,7 @@ async function run(): Promise<void> {
       environment,
       changedFiles,
       repoConfig,
+      codeownersContent,
       planJson: planResult.planJson,
     });
 

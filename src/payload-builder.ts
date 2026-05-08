@@ -32,6 +32,7 @@ interface BuildPayloadOptions {
   workspace?: string;
   environment?: string;
   changedFiles: string[];
+  codeownersContent?: string;
   repoConfig?: RepositoryConfigSnapshot;
   planJson: unknown;
 }
@@ -65,6 +66,7 @@ export function buildRoutingPayload(
       environment: payloadOptions.environment,
     },
     changedFiles: payloadOptions.changedFiles,
+    codeownersContent: payloadOptions.codeownersContent,
     summary,
     resources,
   };
